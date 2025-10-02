@@ -10,18 +10,24 @@ Sistem Trouble Ticket adalah aplikasi web modern yang dirancang untuk mengelola 
 - **Manajemen Pengguna** - CRUD pengguna, peran dan izin
 - **Manajemen Tiket** - pembuatan, pengelolaan, dan pelacakan tiket
 - **Manajemen Tindakan Tiket** - mencatat tindakan yang diambil terhadap tiket
-- **Sistem Peran & Izin** - kontrol akses berbasis peran (RBAC)
+- **Sistem Peran & Izin** - kontrol akses berdasarkan peran (RBAC)
 - **Reset Password** - fitur pemulihan kata sandi
 - **Upload File** - dukungan untuk mengunggah gambar terkait tiket
+- **U: Dashboard Analytics** - ringkasan statistik real-time tiket, status distribusi, dan performa sistem
+- **U: Remote Management** - manajemen lokasi remote dan BTS (Base Transceiver Station) dengan integrasi peta
+- **U: Laporan & Analitik** - fitur pelaporan komprehensif dengan visualisasi data dan metrik performa
 
 ### Frontend (Vue.js)
 - **Antarmuka Responsif** - tampilan yang menyesuaikan dengan berbagai perangkat
-- **Dashboard** - ringkasan status tiket dan statistik
+- **Dashboard** - ringkasan status tiket dan statistik real-time dengan berbagai grafik
 - **Manajemen Tiket** - membuat, melihat, dan memperbarui tiket
 - **Manajemen Pengguna** - pengaturan akun dan informasi pengguna
 - **Manajemen Peran & Izin** - konfigurasi kontrol akses
-- **Laporan** - analisis dan ringkasan tiket
+- **Laporan** - analisis dan ringkasan tiket dengan filter berdasarkan kategori dan tanggal
 - **Pengaturan Sistem** - konfigurasi aplikasi
+- **M: Tampilan Peta untuk Lokasi Remote** - visualisasi lokasi BTS menggunakan peta interaktif
+- **U: Grafik Analitik** - berbagai jenis grafik untuk analisis data tiket
+- **U: Filter dan Sorting Laporan** - kemampuan untuk filter berdasarkan kategori, status, dan rentang tanggal
 
 ## Teknologi yang Digunakan
 
@@ -33,6 +39,8 @@ Sistem Trouble Ticket adalah aplikasi web modern yang dirancang untuk mengelola 
 - **JWT** - token otentikasi
 - **Passlib** - hashing password
 - **Uvicorn** - ASGI server
+- **Chart.js** - visualisasi data untuk laporan
+- **Leaflet** - integrasi peta untuk manajemen remote
 
 ### Frontend
 - **Vue.js 3** - framework JavaScript progresif
@@ -42,6 +50,7 @@ Sistem Trouble Ticket adalah aplikasi web modern yang dirancang untuk mengelola 
 - **Axios** - komunikasi HTTP
 - **Bootstrap** - framework CSS
 - **Chart.js** - visualisasi data
+- **Leaflet** - peta interaktif untuk lokasi remote
 
 ## Prasyarat
 
@@ -174,6 +183,17 @@ sistem-tiket-backend/
 - `GET /permissions/` - Dapatkan semua izin
 - `PUT /permissions/` - Perbarui izin
 
+### U: Remote Management
+- `GET /remotes/` - Dapatkan semua lokasi remote
+- `POST /remotes/` - Buat remote baru
+- `GET /remotes/{id}` - Dapatkan remote berdasarkan ID
+- `PUT /remotes/{id}` - Perbarui remote
+- `DELETE /remotes/{id}` - Hapus remote
+
+### U: Laporan & Dashboard
+- `GET /reports/` - Dapatkan laporan dan analitik
+- `GET /dashboard/` - Dapatkan data ringkasan dashboard
+
 ## Database
 
 Sistem menggunakan database MySQL dengan skema berikut:
@@ -183,8 +203,9 @@ Sistem menggunakan database MySQL dengan skema berikut:
 - **permissions** - menyimpan izin sistem
 - **ticket_actions** - menyimpan tindakan yang diambil terhadap tiket
 - **password_reset_tokens** - menyimpan token reset password
+- **remotes** - menyimpan informasi lokasi remote dan BTS
 
-## Kontribusi
+## M: Kontribusi
 
 Kami menyambut kontribusi dari komunitas. Silakan ikuti langkah-langkah berikut:
 1. Fork repository
@@ -204,3 +225,5 @@ Jika Anda mengalami masalah dengan aplikasi, silakan buka isu di halaman GitHub 
 ## Penutup
 
 Sistem Trouble Ticket ini menyediakan solusi komprehensif untuk mengelola tiket permasalahan dalam organisasi, dengan fitur manajemen pengguna, tiket, dan otorisasi yang lengkap. Sistem ini dirancang dengan pendekatan yang modern dan skalabel, memungkinkan integrasi mudah dengan sistem lainnya.
+
+U: Fitur-fitur terbaru termasuk dashboard real-time, manajemen lokasi remote, dan laporan analitik komprehensif meningkatkan kemampuan sistem untuk memberikan wawasan dan kontrol yang lebih baik terhadap operasional trouble ticket.
