@@ -85,7 +85,9 @@
           </div>
         </div>
         <div class="chart-container">
-          <canvas ref="resolutionTimeChart"></canvas>
+          <div class="chart-placeholder">
+            <p>Chart akan segera tersedia</p>
+          </div>
         </div>
       </div>
 
@@ -102,7 +104,9 @@
           </div>
         </div>
         <div class="chart-container">
-          <canvas ref="categoryVolumeChart"></canvas>
+          <div class="chart-placeholder">
+            <p>Chart akan segera tersedia</p>
+          </div>
         </div>
       </div>
 
@@ -119,7 +123,9 @@
           </div>
         </div>
         <div class="chart-container">
-          <canvas ref="statusDistributionChart"></canvas>
+          <div class="chart-placeholder">
+            <p>Chart akan segera tersedia</p>
+          </div>
         </div>
       </div>
 
@@ -136,7 +142,9 @@
           </div>
         </div>
         <div class="chart-container">
-          <canvas ref="technicianPerformanceChart"></canvas>
+          <div class="chart-placeholder">
+            <p>Chart akan segera tersedia</p>
+          </div>
         </div>
       </div>
     </div>
@@ -191,9 +199,9 @@
                   {{ report.status }}
                 </span>
               </td>
-              <td>{{ formatDate(report.created_at) }}</td>
-              <td>{{ formatDate(report.completed_at) }}</td>
-              <td>{{ formatResolutionTime(report.resolution_time) }}</td>
+              <td>{{ formatDate(report.created_at || '') }}</td>
+              <td>{{ formatDate(report.completed_at || '') }}</td>
+              <td>{{ formatResolutionTime(report.resolution_time || 0) }}</td>
               <td>{{ report.technician || '-' }}</td>
             </tr>
           </tbody>
@@ -217,11 +225,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { Chart, registerables } from 'chart.js';
-
-// Register Chart.js components
-Chart.register(...registerables);
+import { ref, onMounted } from 'vue';
 
 // State management
 const startDate = ref('');
@@ -335,50 +339,6 @@ const allReports = ref([
 
 const filteredReports = ref([...allReports.value]);
 
-// Chart references
-const resolutionTimeChart = ref<HTMLCanvasElement | null>(null);
-const categoryVolumeChart = ref<HTMLCanvasElement | null>(null);
-const statusDistributionChart = ref<HTMLCanvasElement | null>(null);
-const technicianPerformanceChart = ref<HTMLCanvasElement | null>(null);
-
-let resolutionTimeChartInstance: Chart | null = null;
-let categoryVolumeChartInstance: Chart | null = null;
-let statusDistributionChartInstance: Chart | null = null;
-let technicianPerformanceChartInstance: Chart | null = null;
-
-// Icon components
-const TicketIcon = {
-  template: `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 5V7M15 11V13M15 17V19M5 5C3.89543 5 3 5.89543 3 7V10C4.10457 10 5 10.8954 5 12C5 13.1046 4.10457 14 3 14V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V14C19.8954 14 19 13.1046 19 12C19 10.8954 19.8954 10 21 10V7C21 5.89543 20.1046 5 19 5H5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `
-};
-
-const CompletedTicketIcon = {
-  template: `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 12L11 14L15 10M21 12C21 13.1819 20.7672 14.3522 20.3141 15.4442C20.0391 16.5361 19.1971 17.5282 18.3608 18.3645C17.5245 19.2008 16.5324 19.8647 15.4405 20.3178C14.3485 20.7709 13.1782 21 12 21C10.8218 21 9.65152 20.7709 8.55957 20.3178C7.46763 19.8647 6.47553 19.2008 5.6392 18.3645C4.80288 17.5282 4.13898 16.5361 3.68588 15.4442C3.23279 14.3522 3.00003 13.1819 3 12C3.00003 10.8181 3.23279 9.64781 3.68588 8.55585C4.13898 7.4639 4.80288 6.4718 5.6392 5.63547C6.47553 4.79915 7.46763 4.13525 8.55957 3.68216C9.65152 3.22907 10.8218 3 12 3C13.1782 3 14.3485 3.22907 15.4405 3.68216C16.5324 4.13525 17.5245 4.79915 18.3608 5.63547C19.1971 6.4718 19.861 7.4639 20.3141 8.55585C20.7672 9.64781 20.9999 10.8181 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `
-};
-
-const TimeIcon = {
-  template: `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-      <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `
-};
-
-const SatisfactionIcon = {
-  template: `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.00001L14.5 5C14.5 5 13 2 9.5 2C7.5 2 6 3 6 3L2 3V5H3.5L6 18C6 18 7 22 11 22H17C20 22 21 18 21 18L21 9ZM17 18H11C8.5 18 8 16 8 16L7.5 13H19L17 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `
-};
 
 // Methods
 const formatDate = (dateString: string) => {
@@ -430,172 +390,6 @@ const nextPage = () => {
   }
 };
 
-// Initialize charts
-const initCharts = () => {
-  // Resolution Time Chart
-  if (resolutionTimeChart.value) {
-    const ctx = resolutionTimeChart.value.getContext('2d');
-    if (ctx) {
-      resolutionTimeChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
-          datasets: [{
-            label: 'Waktu Resolusi (jam)',
-            data: [2.5, 2.8, 2.3, 2.1, 2.6, 2.4, 2.3],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)'
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  // Category Volume Chart
-  if (categoryVolumeChart.value) {
-    const ctx = categoryVolumeChart.value.getContext('2d');
-    if (ctx) {
-      categoryVolumeChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Jaringan', 'Hardware', 'Software', 'Lainnya'],
-          datasets: [{
-            label: 'Jumlah Tiket',
-            data: [45, 38, 25, 12],
-            backgroundColor: [
-              '#3b82f6',
-              '#ef4444',
-              '#10b981',
-              '#8b5cf6'
-            ],
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)'
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-
-  // Status Distribution Chart
-  if (statusDistributionChart.value) {
-    const ctx = statusDistributionChart.value.getContext('2d');
-    if (ctx) {
-      statusDistributionChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Terbuka', 'Dalam Proses', 'Selesai', 'Ditunda'],
-          datasets: [{
-            data: [15, 20, 120, 5],
-            backgroundColor: [
-              '#ef4444',
-              '#f59e0b',
-              '#10b981',
-              '#6b7280'
-            ],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right'
-            }
-          },
-          cutout: '70%'
-        }
-      });
-    }
-  }
-
-  // Technician Performance Chart
-  if (technicianPerformanceChart.value) {
-    const ctx = technicianPerformanceChart.value.getContext('2d');
-    if (ctx) {
-      technicianPerformanceChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Teknisi A', 'Teknisi B', 'Teknisi C', 'Teknisi D'],
-          datasets: [{
-            label: 'Tiket Diselesaikan',
-            data: [45, 38, 32, 28],
-            backgroundColor: '#3b82f6',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(0, 0, 0, 0.05)'
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          }
-        }
-      });
-    }
-  }
-};
 
 // Lifecycle hooks
 onMounted(() => {
@@ -606,8 +400,6 @@ onMounted(() => {
   
   endDate.value = today.toISOString().split('T')[0];
   startDate.value = thirtyDaysAgo.toISOString().split('T')[0];
-  
-  initCharts();
 });
 </script>
 
@@ -891,6 +683,18 @@ onMounted(() => {
 .chart-container {
   height: 300px;
   position: relative;
+}
+
+.chart-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+  font-style: italic;
 }
 
 .reports-table-container {

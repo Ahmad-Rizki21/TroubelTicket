@@ -119,7 +119,7 @@ const router = createRouter({
 });
 
 // Global navigation guard
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore();
   
   // Check authentication
@@ -129,14 +129,15 @@ router.beforeEach((to, from, next) => {
   }
   
   // Check permissions if route requires specific permissions
-  if (to.meta.permissions && to.meta.permissions.length > 0) {
+  const permissions = to.meta.permissions as string[] | undefined;
+  if (permissions && permissions.length > 0) {
     if (!authStore.isAuthenticated || !authStore.user) {
       next('/login');
       return;
     }
     
     // Check if user has all required permissions
-    const requiredPermissions = to.meta.permissions as string[];
+    const requiredPermissions = permissions;
     const hasAllPermissions = requiredPermissions.every(permission => 
       authStore.hasPermission(permission)
     );
