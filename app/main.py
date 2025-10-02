@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .routers import tickets, users, auth, ticket_actions, roles, permissions
+# Importing all the application routers
+from .routers import tickets, users, auth, ticket_actions, roles, permissions, remotes, reports, dashboard
 
 
 app = FastAPI(title="Sistem Tiket API")
@@ -28,6 +29,24 @@ app.include_router(auth.router)
 app.include_router(ticket_actions.router)
 app.include_router(roles.router)
 app.include_router(permissions.router)
+app.include_router(remotes.router)
+app.include_router(reports.router)
+app.include_router(dashboard.router)
+
+@app.on_event("startup")
+async def startup_event():
+    print("""
+      ██████╗ ██████╗ ████████╗ █████╗  ██████╗ ███╗   ███╗
+      ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔═══██╗████╗ ████║
+      ███████║██████╔╝   ██║   ███████║██║   ██║██╔████╔██║
+      ██╔══██║██╔══██╗   ██║   ██╔══██║██║   ██║██║╚██╔╝██║
+      ██║  ██║██║  ██║   ██║   ██║  ██║╚██████╔╝██║ ╚═╝ ██║
+      ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝
+    """)
+    print("-------------------------------------------------------------------")
+    print("  Sistem Tiket dibangun oleh Artacom")
+    print("  Developed by Ahmad (Instagram: @amad.dyk)")
+    print("-------------------------------------------------------------------")
 
 @app.get("/", tags=["Root"])
 async def read_root():

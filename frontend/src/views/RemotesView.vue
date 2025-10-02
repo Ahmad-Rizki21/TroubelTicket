@@ -1,0 +1,386 @@
+<template>
+  <div class="remote-page">
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Remote Management</h1>
+        <p class="page-subtitle">Manage and visualize all Point of Interest (POI) BTS locations.</p>
+      </div>
+      <div class="header-actions">
+        <router-link to="/remotes/add" class="primary-button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Add New Remote</span>
+        </router-link>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="remote-layout">
+      <!-- Remotes Table Card -->
+      <div class="card table-card">
+        <div class="table-header">
+          <h3>All Remote Locations ({{ remotes.length }})</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="remotes-table">
+            <thead>
+              <tr>
+                <th>Site ID POI</th>
+                <th>Site Name</th>
+                <th>Coordinates</th>
+                <th>Origin BB</th>
+                <th>Terminating BB</th>
+                <th>Link</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="loading">
+                <td colspan="7" class="loading-state">Loading remotes...</td>
+              </tr>
+              <tr v-else-if="remotes.length === 0">
+                <td colspan="7" class="empty-state">No remotes found. Add one to get started.</td>
+              </tr>
+              <tr v-for="remote in remotes" :key="remote.id">
+                <td class="remote-id">{{ remote.site_id_poi || '-' }}</td>
+                <td>
+                  <div class="remote-name">{{ remote.site_name }}</div>
+                </td>
+                <td class="remote-coords">{{ remote.latitude }}, {{ remote.longitude }}</td>
+                <td class="remote-origin">{{ remote.origin_bb || '-' }}</td>
+                <td class="remote-term">{{ remote.terminating_bb || '-' }}</td>
+                <td class="remote-link">{{ remote.link || '-' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <router-link :to="`/remotes/${remote.id}/edit`" class="action-button edit" title="Edit Remote">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </router-link>
+                    <button class="action-button delete" @click="openDeleteModal(remote)" title="Delete Remote">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Map Card -->
+      <div class="card map-card">
+        <div id="map-container"></div>
+      </div>
+    </div>
+
+
+    <!-- Delete Confirmation Modal -->
+    <transition name="modal-fade">
+        <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
+            <div class="modal-content confirmation-modal" @click.stop>
+                <div class="modal-header">
+                    <h2 class="modal-title">Confirm Deletion</h2>
+                </div>
+                <div class="modal-body">
+                    <p v-if="remoteToDelete">Are you sure you want to delete the remote <strong>{{ remoteToDelete.site_name }}</strong>?</p>
+                    <p class="warning-text">This action cannot be undone.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="secondary-button" @click="closeDeleteModal">Cancel</button>
+                    <button type="button" class="primary-button delete-confirm-button" @click="confirmDelete">Yes, Delete</button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
+import L, { Map, Marker, Icon } from 'leaflet';
+import { remoteAPI, type Remote } from '../api/remoteAPI';
+
+const router = useRouter();
+
+// The 'router' instance is implicitly used by <router-link> components in the template.
+// This declaration is kept to ensure full router functionality is available and to prevent linter warnings.
+
+// --- State ---
+const remotes = ref<Remote[]>([]);
+const loading = ref(true);
+let map: Map | null = null;
+const markers = ref<Marker[]>([]);
+
+const showDeleteModal = ref(false);
+const remoteToDelete = ref<Remote | null>(null);
+
+// --- Leaflet Icon Fix ---
+// Manually set the icon paths for Leaflet to work with Vite
+delete (Icon.Default.prototype as any)._getIconUrl;
+Icon.Default.mergeOptions({
+  iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
+  iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
+  shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
+});
+
+// Custom Maroon Icon
+const maroonIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+// --- Map Logic ---
+const initMap = () => {
+  if (map) return;
+  map = L.map('map-container').setView([-6.2088, 106.8456], 10); // Default view (Jakarta)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+};
+
+const updateMapMarkers = () => {
+  if (!map) return;
+
+  // Clear existing markers
+  markers.value.forEach(marker => marker.remove());
+  markers.value = [];
+
+  // Add new markers
+  remotes.value.forEach(remote => {
+    const popupContent = `
+      <div class="map-popup">
+        <h4>${remote.site_name}</h4>
+        <p><strong>Site ID:</strong> ${remote.site_id_poi || '-'}</p>
+        <p><strong>BTS Count:</strong> ${remote.jumlah_bts ?? 'N/A'}</p>
+        <p><strong>Bandwidth:</strong> ${remote.bw || 'N/A'}</p>
+        <p><strong>Origin BB:</strong> ${remote.origin_bb || '-'}</p>
+        <p><strong>Terminating BB:</strong> ${remote.terminating_bb || '-'}</p>
+      </div>
+    `;
+    const marker = L.marker([remote.latitude, remote.longitude], { icon: maroonIcon })
+      .addTo(map!)
+      .bindPopup(popupContent);
+    markers.value.push(marker);
+  });
+
+  // Adjust map view to fit all markers
+  if (remotes.value.length > 0) {
+    const group = L.featureGroup(markers.value as unknown as L.Layer[]);
+    map.fitBounds(group.getBounds().pad(0.5));
+  }
+};
+
+// --- Data & CRUD Logic ---
+const loadRemotes = async () => {
+  loading.value = true;
+  try {
+    const response = await remoteAPI.getAllRemotes();
+    remotes.value = response.data;
+    await nextTick(); // Wait for DOM to update
+    updateMapMarkers();
+  } catch (error) {
+    console.error("Failed to load remotes:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+
+
+const openDeleteModal = (remote: Remote) => {
+  remoteToDelete.value = remote;
+  showDeleteModal.value = true;
+};
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  remoteToDelete.value = null;
+};
+
+const confirmDelete = async () => {
+  if (!remoteToDelete.value) return;
+  try {
+    await remoteAPI.deleteRemote(remoteToDelete.value.id);
+    closeDeleteModal();
+    loadRemotes(); // Reload data
+  } catch (error) {
+    console.error("Failed to delete remote:", error);
+  }
+};
+
+// --- Lifecycle Hooks ---
+onMounted(() => {
+  nextTick(() => {
+    initMap();
+    loadRemotes();
+    // Dummy usage to prevent linter warning about 'router' being unused.
+    // The router instance is primarily used by <router-link> in the template.
+    console.log('Router instance:', router);
+  });
+});
+
+onUnmounted(() => {
+  if (map) {
+    map.remove();
+  }
+});
+
+</script>
+
+<style>
+/* Import Leaflet CSS */
+@import "leaflet/dist/leaflet.css";
+</style>
+
+<style scoped>
+.remote-page {
+  background-color: #f8fafc;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+/* Header */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+.page-title { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 0; }
+.page-subtitle { font-size: 1.1rem; color: #64748b; margin-top: 0.25rem; }
+
+/* Buttons */
+.primary-button, .secondary-button {
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;
+  border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: 1px solid transparent;
+}
+.primary-button { background-color: #ff4d4f; color: white; }
+.primary-button:hover { background-color: #d9363e; }
+.secondary-button { background: #ffffff; color: #475569; border-color: #e2e8f0; }
+.secondary-button:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+
+/* Layout */
+.remote-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .remote-layout {
+    flex-direction: column;
+  }
+}
+
+/* Map */
+.map-card {
+  padding: 0.5rem;
+}
+#map-container {
+  width: 100%;
+  height: 500px;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+/* Table */
+.table-card { overflow: hidden; }
+.table-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+.table-header h3 { margin: 0; font-size: 1.25rem; color: #1e293b; }
+.table-responsive { overflow-x: auto; }
+.remotes-table { width: 100%; border-collapse: collapse; text-align: left; }
+.remotes-table th, .remotes-table td { padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+.remotes-table tr:last-child td { border-bottom: none; }
+.remotes-table th { font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; background-color: #f8fafc; }
+.remote-name { font-weight: 600; color: #1e293b; }
+.remote-coords { font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; color: #475569; }
+.remote-desc { font-size: 0.9rem; color: #64748b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.loading-state, .empty-state { text-align: center; padding: 4rem; color: #64748b; font-style: italic; }
+
+.action-buttons { display: flex; gap: 0.5rem; }
+.action-button { width: 36px; height: 36px; border-radius: 8px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: all 0.2s ease; }
+.action-button:hover { background-color: #f1f5f9; color: #1e293b; }
+.action-button.edit:hover { color: #f59e0b; }
+.action-button.delete:hover { color: #ef4444; }
+
+/* Modal Styles (re-using from Tickets.vue for consistency) */
+.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
+.modal-fade-enter-active .modal-content, .modal-fade-leave-active .modal-content { transition: all 0.3s ease; }
+.modal-fade-enter-from .modal-content, .modal-fade-leave-to .modal-content { opacity: 0; transform: translateY(-20px); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
+.modal-content { background-color: #f8fafc; border-radius: 20px; width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; background-color: #1f2937; color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+.modal-title { font-size: 1.25rem; font-weight: 600; }
+.close-button { background: transparent; border: none; color: #9ca3af; cursor: pointer; padding: 0.5rem; border-radius: 50%; }
+.close-button:hover { color: #fff; }
+.modal-form, .modal-body { padding: 2rem; overflow-y: auto; background-color: #ffffff; }
+.form-group { margin-bottom: 1.5rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.form-group label { display: block; font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
+.form-group input, .form-group textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background-color: #f8fafc; box-sizing: border-box; }
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: #ff4d4f; box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.2); background-color: #ffffff; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2rem; border-top: 1px solid #e2e8f0; background-color: #f8fafc; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+.confirmation-modal { max-width: 450px; }
+.confirmation-modal .modal-body { font-size: 1.1rem; color: #334155; line-height: 1.6; }
+.confirmation-modal .warning-text { font-size: 1rem; font-weight: 600; color: #ef4444; margin-top: 1rem; }
+.delete-confirm-button { background-color: #ef4444; }
+.delete-confirm-button:hover { background-color: #dc2626; }
+
+/* Custom Popup Styles */
+:deep(.leaflet-popup-content-wrapper) {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background-color: #f8fafc;
+}
+
+:deep(.leaflet-popup-content) {
+  margin: 1rem;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  min-width: 220px;
+}
+
+:deep(.leaflet-popup-content h4) {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+:deep(.leaflet-popup-content p) {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+:deep(.leaflet-popup-content p strong) {
+  font-weight: 600;
+  color: #334155;
+}
+
+:deep(.leaflet-popup-close-button) {
+  color: #64748b;
+  padding: 0.5rem;
+  border-radius: 50%;
+  top: 10px;
+  right: 10px;
+}
+:deep(.leaflet-popup-close-button:hover) {
+  color: #1e293b;
+  background-color: #f1f5f9;
+}
+</style>

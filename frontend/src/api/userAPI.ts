@@ -1,11 +1,22 @@
 import api from './apiConfig';
 
+export interface Permission {
+  id: number;
+  name: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  permissions: Permission[];
+}
+
 export interface User {
   id: number;
   username: string;
   role_id: number;
   created_at: string;
-  role: { id: number; name: string; }; // Assuming role is nested
+  role: Role;
 }
 
 export interface UserCreate {
@@ -35,6 +46,10 @@ const userAPI = {
 
   updateUser: (id: number, userData: UserUpdate) => {
     return api.put<User>(`/users/${id}`, userData);
+  },
+
+  getMe: () => {
+    return api.get<User>('/users/me');
   },
 
   deleteUser: (id: number) => {

@@ -37,10 +37,16 @@ def seed_permissions():
         "ticket:create", "ticket:read", "ticket:update", "ticket:delete", "ticket:assign",
         # User permissions
         "user:create", "user:read", "user:update", "user:delete",
+        # Remote/Location permissions
+        "remote:create", "remote:read", "remote:update", "remote:delete",
+        # Report permissions
+        "report:read",
         # Permission permissions (permision untuk mengelola permission)
         "permission:create", "permission:read", "permission:update", "permission:delete",
         # Role & Permission management
-        "role:create", "role:read", "role:update", "role:delete", "permission:assign"
+        "role:create", "role:read", "role:update", "role:delete", "permission:assign",
+        # Settings permissions
+        "settings:read", "settings:update"
     ]
     for perm_name in permission_list:
         perm_exists = get_permission_by_name(db, name=perm_name)
@@ -83,13 +89,20 @@ def assign_permissions_to_roles():
             "ticket:create", "ticket:read", "ticket:update", "ticket:delete", "ticket:assign",
             # All user permissions
             "user:create", "user:read", "user:update", "user:delete",
+            # All remote permissions
+            "remote:create", "remote:read", "remote:update", "remote:delete",
+            # Report permissions
+            "report:read",
             # All permission permissions
             "permission:create", "permission:read", "permission:update", "permission:delete",
             # All role & permission management
-            "role:create", "role:read", "role:update", "role:delete", "permission:assign"
+            "role:create", "role:read", "role:update", "role:delete", "permission:assign",
+            # Settings permissions
+            "settings:read", "settings:update"
         ],
         "teknisi": [
-            "ticket:read", "ticket:update", "ticket:assign"
+            "ticket:read", "ticket:update", "ticket:assign",
+            "remote:read", "report:read"
         ]
     }
 

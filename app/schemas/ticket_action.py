@@ -11,6 +11,10 @@ class TicketActionBase(BaseModel):
 class TicketActionCreate(TicketActionBase):
     pass
 
+class TicketActionUpdate(TicketActionBase):
+    action_description: Optional[str] = None
+    action_image_url: Optional[str] = None
+
 class TicketAction(TicketActionBase):
     id: int
     ticket_id: int

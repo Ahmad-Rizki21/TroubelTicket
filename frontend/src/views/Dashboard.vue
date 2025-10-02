@@ -4,15 +4,15 @@
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Selamat datang kembali! Berikut ringkasan aktivitas tiket Anda.</p>
+        <p class="page-subtitle">Welcome back! Here's a summary of your ticket activity.</p>
       </div>
       <div class="header-actions">
         <div class="date-filter">
           <select v-model="selectedPeriod" class="period-selector" @change="updateDashboardData">
-            <option value="today">Hari Ini</option>
-            <option value="week">Minggu Ini</option>
-            <option value="month">Bulan Ini</option>
-            <option value="year">Tahun Ini</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
           </select>
         </div>
         <button class="refresh-button" @click="refreshData">
@@ -45,7 +45,7 @@
           <svg v-else-if="stat.trend < 0" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 5V19M19 12L12 19L5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>{{ Math.abs(stat.trend) }}%</span>
+          <span v-if="stat.trend !== 0">{{ Math.abs(stat.trend) }}%</span>
         </div>
       </div>
     </div>
@@ -55,7 +55,7 @@
       <!-- Ticket Status Chart -->
       <div class="chart-card">
         <div class="card-header">
-          <h2 class="card-title">Status Tiket</h2>
+          <h2 class="card-title">Ticket Status</h2>
           <div class="card-actions">
             <button class="action-button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,7 +72,7 @@
       <!-- Recent Tickets Table -->
       <div class="table-card">
         <div class="card-header">
-          <h2 class="card-title">Tiket Terbaru</h2>
+          <h2 class="card-title">Recent Tickets</h2>
           <div class="card-actions">
             <button class="action-button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -86,18 +86,18 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Judul</th>
+                <th>Title</th>
                 <th>Status</th>
-                <th>Prioritas</th>
-                <th>Dibuat</th>
+                <th>Priority</th>
+                <th>Created</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="ticket in recentTickets" :key="ticket.id">
-                <td>#{{ ticket.id }}</td>
+                <td>#{{ ticket.ticket_code }}</td>
                 <td>{{ ticket.title }}</td>
                 <td>
-                  <span class="status-badge" :class="ticket.status.toLowerCase()">
+                  <span class="status-badge" :class="ticket.status.toLowerCase().replace(' ', '-')">
                     {{ ticket.status }}
                   </span>
                 </td>
@@ -108,6 +108,9 @@
                 </td>
                 <td>{{ formatDate(ticket.created_at) }}</td>
               </tr>
+              <tr v-if="recentTickets.length === 0">
+                <td colspan="5" class="empty-state">No recent tickets.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -116,7 +119,7 @@
       <!-- Priority Distribution Chart -->
       <div class="chart-card">
         <div class="card-header">
-          <h2 class="card-title">Distribusi Prioritas</h2>
+          <h2 class="card-title">Priority Distribution</h2>
           <div class="card-actions">
             <button class="action-button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -133,7 +136,7 @@
       <!-- Top Categories -->
       <div class="categories-card">
         <div class="card-header">
-          <h2 class="card-title">Kategori Teratas</h2>
+          <h2 class="card-title">Top Categories</h2>
           <div class="card-actions">
             <button class="action-button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -148,7 +151,7 @@
               <h3 class="category-name">{{ category.name }}</h3>
               <div class="category-progress">
                 <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: category.percentage + '%', backgroundColor: category.color }"></div>
+                  <div class="progress-fill" :style="{ width: category.percentage + '%', backgroundColor: category.color || '#3b82f6' }"></div>
                 </div>
               </div>
             </div>
@@ -157,6 +160,9 @@
               <span class="category-percentage">{{ category.percentage }}%</span>
             </div>
           </div>
+          <div v-if="topCategories.length === 0" class="empty-state">
+            No categories available.
+          </div>
         </div>
       </div>
     </div>
@@ -164,8 +170,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Chart, registerables } from 'chart.js';
+import { dashboardAPI, type DashboardData } from '../api/dashboardAPI';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -173,16 +180,13 @@ Chart.register(...registerables);
 // State management
 const selectedPeriod = ref('week');
 const isRefreshing = ref(false);
+const dashboardData = ref<DashboardData | null>(null);
+
+// Loading state
+const isLoading = ref(true);
+const error = ref<string | null>(null);
 
 // Icon components
-const TicketIcon = {
-  template: `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 5V7M15 11V13M15 17V19M5 5C3.89543 5 3 5.89543 3 7V10C4.10457 10 5 10.8954 5 12C5 13.1046 4.10457 14 3 14V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V14C19.8954 14 19 13.1046 19 12C19 10.8954 19.8954 10 21 10V7C21 5.89543 20.1046 5 19 5H5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `
-};
-
 const OpenTicketIcon = {
   template: `
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -208,102 +212,48 @@ const TimeIcon = {
   `
 };
 
-// Mock data for demonstration
+const RemoteIcon = {
+  template: `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `
+};
+
+// Reactive data refs
 const stats = ref([
   {
-    title: 'Total Tiket',
-    value: '142',
-    trend: 12,
-    color: '#3b82f6',
-    icon: TicketIcon
-  },
-  {
-    title: 'Tiket Terbuka',
-    value: '24',
-    trend: -3,
+    title: 'Open Tickets',
+    value: '0',
+    trend: 0,
     color: '#ef4444',
     icon: OpenTicketIcon
   },
   {
-    title: 'Tiket Diselesaikan',
-    value: '118',
-    trend: 8,
+    title: 'Completed Tickets',
+    value: '0',
+    trend: 0,
     color: '#10b981',
     icon: CompletedTicketIcon
   },
   {
-    title: 'Rata-rata Resolusi',
-    value: '2.3 hari',
-    trend: -5,
+    title: 'Avg. Resolution Time',
+    value: '0',
+    trend: 0,
     color: '#8b5cf6',
     icon: TimeIcon
+  },
+  {
+    title: 'Total Remotes',
+    value: '0',
+    trend: 0,
+    color: '#f59e0b',
+    icon: RemoteIcon
   }
 ]);
 
-const recentTickets = ref([
-  {
-    id: '001',
-    title: 'Internet Lambat di Ruang IT',
-    status: 'Terbuka',
-    priority: 'Tinggi',
-    created_at: '2023-06-15T09:30:00Z'
-  },
-  {
-    id: '002',
-    title: 'Printer Tidak Merespon',
-    status: 'Dalam Proses',
-    priority: 'Sedang',
-    created_at: '2023-06-14T14:15:00Z'
-  },
-  {
-    id: '003',
-    title: 'Software Accounting Error',
-    status: 'Selesai',
-    priority: 'Rendah',
-    created_at: '2023-06-13T11:45:00Z'
-  },
-  {
-    id: '004',
-    title: 'Komputer Tidak Bisa Boot',
-    status: 'Terbuka',
-    priority: 'Tinggi',
-    created_at: '2023-06-12T16:20:00Z'
-  },
-  {
-    id: '005',
-    title: 'Email Server Down',
-    status: 'Dalam Proses',
-    priority: 'Tinggi',
-    created_at: '2023-06-11T08:10:00Z'
-  }
-]);
-
-const topCategories = ref([
-  {
-    name: 'Jaringan',
-    count: 42,
-    percentage: 35,
-    color: '#3b82f6'
-  },
-  {
-    name: 'Hardware',
-    count: 38,
-    percentage: 32,
-    color: '#ef4444'
-  },
-  {
-    name: 'Software',
-    count: 31,
-    percentage: 26,
-    color: '#10b981'
-  },
-  {
-    name: 'Lainnya',
-    count: 8,
-    percentage: 7,
-    color: '#8b5cf6'
-  }
-]);
+const recentTickets = ref<any[]>([]);
+const topCategories = ref<any[]>([]);
 
 // Chart references
 const statusChart = ref<HTMLCanvasElement | null>(null);
@@ -314,41 +264,108 @@ let priorityChartInstance: Chart | null = null;
 // Methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('id-ID', {
+  return date.toLocaleDateString('en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric'
   });
 };
 
-const updateDashboardData = () => {
-  console.log(`Updating dashboard data for period: ${selectedPeriod.value}`);
+const updateDashboardData = async () => {
+  isLoading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await dashboardAPI.getDashboardData(selectedPeriod.value);
+    dashboardData.value = response.data;
+    
+    // Update stats with real data
+    stats.value = [
+      {
+        title: 'Open Tickets',
+        value: response.data.stats.open_tickets.toString(),
+        trend: 0,
+        color: '#ef4444',
+        icon: OpenTicketIcon
+      },
+      {
+        title: 'Completed Tickets',
+        value: response.data.stats.completed_tickets.toString(),
+        trend: 0,
+        color: '#10b981',
+        icon: CompletedTicketIcon
+      },
+      {
+        title: 'Avg. Resolution Time',
+        value: response.data.stats.avg_resolution_time,
+        trend: 0,
+        color: '#8b5cf6',
+        icon: TimeIcon
+      },
+      {
+        title: 'Total Remotes',
+        value: response.data.stats.total_remotes.toString(),
+        trend: 0,
+        color: '#f59e0b',
+        icon: RemoteIcon
+      }
+    ];
+    
+    // Update recent tickets
+    recentTickets.value = response.data.recent_tickets;
+    
+    // Update top categories
+    topCategories.value = response.data.top_categories;
+    
+  } catch (err) {
+    console.error('Error fetching dashboard data:', err);
+    error.value = 'Failed to load dashboard data. Please try again.';
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-const refreshData = () => {
+const refreshData = async () => {
   isRefreshing.value = true;
-  setTimeout(() => {
-    isRefreshing.value = false;
-  }, 1000);
+  await updateDashboardData();
+  isRefreshing.value = false;
 };
 
-// Initialize charts
+// Initialize charts with real data
 const initCharts = () => {
-  if (statusChart.value) {
+  // Status distribution chart (doughnut)
+  if (statusChart.value && dashboardData.value) {
     const ctx = statusChart.value.getContext('2d');
     if (ctx) {
+      // Destroy existing chart if it exists
+      if (statusChartInstance) {
+        statusChartInstance.destroy();
+      }
+      
+      // Status colors mapping
+      const statusColors: Record<string, string> = {
+        'Open': '#ef4444',
+        'In Progress': '#f59e0b',
+        'Closed': '#10b981',
+        'On Hold': '#6b7280'
+      };
+      
+      // Default colors for unknown statuses
+      const defaultColors = ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
+      
+      const labels = dashboardData.value.status_distribution.map(item => item.status);
+      const data = dashboardData.value.status_distribution.map(item => item.count);
+      const backgroundColors = labels.map((label, index) => 
+        statusColors[label] || defaultColors[index % defaultColors.length]
+      );
+      
       statusChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Terbuka', 'Dalam Proses', 'Selesai', 'Ditunda'],
+          labels: labels,
           datasets: [{
-            data: [24, 18, 118, 5],
-            backgroundColor: [
-              '#ef4444',
-              '#f59e0b',
-              '#10b981',
-              '#6b7280'
-            ],
+            data: data,
+            backgroundColor: backgroundColors,
             borderWidth: 0
           }]
         },
@@ -371,44 +388,45 @@ const initCharts = () => {
     }
   }
 
-  if (priorityChart.value) {
+  // Priority distribution chart (bar)
+  if (priorityChart.value && dashboardData.value) {
     const ctx = priorityChart.value.getContext('2d');
     if (ctx) {
+      // Destroy existing chart if it exists
+      if (priorityChartInstance) {
+        priorityChartInstance.destroy();
+      }
+      
+      // Priority colors mapping
+      const priorityColors: Record<string, string> = {
+        'High': '#ef4444',
+        'Medium': '#f59e0b',
+        'Low': '#10b981'
+      };
+      
+      const labels = dashboardData.value.priority_distribution.map(item => item.priority);
+      const data = dashboardData.value.priority_distribution.map(item => item.count);
+      const backgroundColors = labels.map(label => 
+        priorityColors[label] || '#3b82f6'
+      );
+      
       priorityChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-          datasets: [
-            {
-              label: 'Tinggi',
-              data: [12, 19, 15, 17, 14, 24],
-              backgroundColor: '#ef4444',
-              borderRadius: 4
-            },
-            {
-              label: 'Sedang',
-              data: [22, 28, 25, 30, 27, 38],
-              backgroundColor: '#f59e0b',
-              borderRadius: 4
-            },
-            {
-              label: 'Rendah',
-              data: [15, 18, 12, 20, 16, 25],
-              backgroundColor: '#10b981',
-              borderRadius: 4
-            }
-          ]
+          labels: labels,
+          datasets: [{
+            label: 'Number of Tickets',
+            data: data,
+            backgroundColor: backgroundColors,
+            borderRadius: 4
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              position: 'top',
-              labels: {
-                usePointStyle: true,
-                pointStyle: 'rectRounded'
-              }
+              display: false
             }
           },
           scales: {
@@ -430,19 +448,36 @@ const initCharts = () => {
   }
 };
 
+// Reactive data for interval
+const refreshIntervalId = ref<number | null>(null);
+
 // Lifecycle hooks
 onMounted(() => {
-  initCharts();
+  updateDashboardData();
+  // Set up automatic refresh every 10 seconds
+  refreshIntervalId.value = setInterval(() => {
+    console.log('Auto-refreshing dashboard data...');
+    updateDashboardData();
+  }, 10000); // Refresh every 10 seconds
 });
 
-// Watch for theme changes or data updates
-watch([stats, recentTickets, topCategories], () => {
-  if (statusChartInstance) {
-    statusChartInstance.update();
+onUnmounted(() => {
+  // Clear the interval when the component is unmounted
+  if (refreshIntervalId.value !== null) {
+    clearInterval(refreshIntervalId.value);
   }
-  if (priorityChartInstance) {
-    priorityChartInstance.update();
+});
+
+// Watch for data changes to update charts
+watch(dashboardData, () => {
+  if (dashboardData.value) {
+    initCharts();
   }
+});
+
+// Watch for period changes
+watch(selectedPeriod, () => {
+  updateDashboardData();
 });
 </script>
 
@@ -453,7 +488,7 @@ watch([stats, recentTickets, topCategories], () => {
 
 .dashboard-container {
   width: 100%;
-  min-height: 100vh;
+  /* min-height: 100vh; */ /* Removed to prevent overflow */
   padding: 1rem;
   background-color: #f8fafc;
 }
@@ -719,22 +754,22 @@ watch([stats, recentTickets, topCategories], () => {
   white-space: nowrap;
 }
 
-.status-badge.terbuka {
+.status-badge.open {
   background-color: #fee2e2;
   color: #dc2626;
 }
 
-.status-badge.dalam-proses {
+.status-badge.in-progress {
   background-color: #fef3c7;
   color: #d97706;
 }
 
-.status-badge.selesai {
+.status-badge.closed {
   background-color: #d1fae5;
   color: #059669;
 }
 
-.status-badge.ditunda {
+.status-badge.on-hold {
   background-color: #e5e7eb;
   color: #374151;
 }
@@ -748,17 +783,17 @@ watch([stats, recentTickets, topCategories], () => {
   white-space: nowrap;
 }
 
-.priority-badge.tinggi {
+.priority-badge.high {
   background-color: #fee2e2;
   color: #dc2626;
 }
 
-.priority-badge.sedang {
+.priority-badge.medium {
   background-color: #fef3c7;
   color: #d97706;
 }
 
-.priority-badge.rendah {
+.priority-badge.low {
   background-color: #d1fae5;
   color: #059669;
 }
@@ -841,6 +876,44 @@ watch([stats, recentTickets, topCategories], () => {
   animation: spin 1s linear infinite;
 }
 
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+  font-style: italic;
+  width: 100%;
+}
+
+.loading .stat-value,
+.loading .stat-title {
+  background-color: #e5e7eb;
+  color: transparent;
+  border-radius: 0.25rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive adjustments for more cards */
+@media (min-width: 1400px) {
+  .content-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .chart-card:first-child,
+  .table-card,
+  .categories-card {
+    grid-column: span 1;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .content-grid {
@@ -849,6 +922,98 @@ watch([stats, recentTickets, topCategories], () => {
   
   .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0.75rem;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+    min-height: 100px;
+  }
+  
+  .stat-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .chart-card, .table-card, .categories-card {
+    padding: 1rem;
+    min-height: 350px;
+  }
+  
+  .chart-container {
+    height: 250px;
+  }
+  
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .category-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .category-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 0.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .stat-content {
+    text-align: center;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .card-actions {
+    align-self: flex-end;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.75rem;
   }
 }
 
