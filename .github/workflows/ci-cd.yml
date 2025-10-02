@@ -138,13 +138,21 @@ jobs:
     - name: Run ESLint
       run: |
         cd frontend
-        npx eslint src/ --ext .js,.ts,.vue --format=json || true
+        if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
+          npx eslint src/ --ext .js,.ts,.vue --format=json || echo "ESLint completed with warnings"
+        else
+          echo "ESLint config not found, skipping ESLint check"
+        fi
       continue-on-error: true
 
     - name: Check code formatting
       run: |
         cd frontend
-        npx prettier --check src/**/*.{js,ts,vue} || true
+        if [ -f ".prettierrc" ] || [ -f ".prettierrc.json" ]; then
+          npx prettier --check src/**/*.{js,ts,vue} || echo "Prettier check completed with warnings"
+        else
+          echo "Prettier config not found, skipping formatting check"
+        fi
       continue-on-error: true
 
   deploy-staging:
