@@ -1,12 +1,22 @@
 <template>
   <div class="settings-container">
     <!-- Page Header -->
-    <div class="page-header">
+    <header class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Pengaturan Sistem</h1>
-        <p class="page-subtitle">Kelola konfigurasi dan preferensi sistem</p>
+        <div class="title-section">
+          <h1 class="page-title">
+            <span class="title-gradient">Pengaturan Sistem</span>
+          </h1>
+          <p class="page-subtitle">Kelola konfigurasi dan preferensi sistem</p>
+        </div>
+        <div class="header-stats">
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Active</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
 
     <!-- Settings Navigation -->
     <div class="settings-layout">
@@ -243,35 +253,92 @@ onMounted(() => {
 
 <style scoped>
 .settings-container {
-  padding: 24px;
-  width: 100%;
-  box-sizing: border-box;
+  background-color: #f8fafc;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
 }
 
+/* Header Styles - Similar to Dashboard */
 .page-header {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 16px;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.title-section {
   flex: 1;
 }
 
 .page-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 8px 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
+}
+
+.title-gradient {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .page-subtitle {
-  font-size: 16px;
+  font-size: clamp(1rem, 2vw, 1.125rem);
   color: #64748b;
   margin: 0;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(128, 0, 0, 0.1);
+  border-radius: 2rem;
+  color: #800000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(128, 0, 0, 0.2);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #800000;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .settings-layout {
@@ -320,9 +387,9 @@ onMounted(() => {
 }
 
 .nav-link.active {
-  background: #eff6ff;
-  color: #3b82f6;
-  border-left-color: #3b82f6;
+  background: rgba(128, 0, 0, 0.1);
+  color: #800000;
+  border-left-color: #800000;
 }
 
 .settings-content {
@@ -388,8 +455,8 @@ onMounted(() => {
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: #800000;
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
   background-color: #fff;
 }
 
@@ -402,7 +469,7 @@ onMounted(() => {
 
 .save-button {
   padding: 12px 24px;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -414,7 +481,7 @@ onMounted(() => {
 
 .save-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 10px 15px -3px rgba(128, 0, 0, 0.3);
 }
 
 .system-info-grid {
@@ -513,7 +580,7 @@ onMounted(() => {
   
   .nav-link.active {
     border-left: none;
-    border-bottom-color: #3b82f6;
+    border-bottom-color: #800000;
   }
   
   .form-row {

@@ -6,6 +6,7 @@ import ResetPassword from '../views/ResetPassword.vue';
 import ChangePassword from '../views/ChangePassword.vue';
 import SimplePasswordReset from '../views/SimplePasswordReset.vue';
 import Tickets from '../views/Tickets.vue';
+import CreateTicket from '../views/CreateTicket.vue';
 import Reports from '../views/Reports.vue';
 import Settings from '../views/Settings.vue';
 import ActionTakenView from '../views/ActionTakenView.vue';
@@ -49,6 +50,12 @@ const routes = [
     name: 'Tickets',
     component: Tickets,
     meta: { requiresAuth: true, permissions: ['ticket:read'] }
+  },
+  {
+    path: '/tickets/create',
+    name: 'CreateTicket',
+    component: CreateTicket,
+    meta: { requiresAuth: true, permissions: ['ticket:create'] }
   },
   {
     path: '/reports',

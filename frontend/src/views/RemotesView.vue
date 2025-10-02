@@ -3,14 +3,26 @@
     <!-- Page Header -->
     <header class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Remote Management</h1>
-        <p class="page-subtitle">Manage and visualize all Point of Interest (POI) BTS locations.</p>
-      </div>
-      <div class="header-actions">
-        <router-link to="/remotes/add" class="primary-button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Add New Remote</span>
-        </router-link>
+        <div class="title-section">
+          <h1 class="page-title">
+            <span class="title-gradient">Remote Management</span>
+          </h1>
+          <p class="page-subtitle">Manage and visualize all Point of Interest (POI) BTS locations.</p>
+        </div>
+        <div class="header-stats">
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Live</span>
+          </div>
+          <div class="header-actions">
+            <router-link to="/remotes/add" class="primary-button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Add New Remote</span>
+            </router-link>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -253,20 +265,132 @@ onUnmounted(() => {
   border: 1px solid #e2e8f0;
 }
 
-/* Header */
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-.page-title { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 0; }
-.page-subtitle { font-size: 1.1rem; color: #64748b; margin-top: 0.25rem; }
+/* Header Styles - Similar to Dashboard */
+.page-header {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.title-section {
+  flex: 1;
+}
+
+.page-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
+}
+
+.title-gradient {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-subtitle {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(128, 0, 0, 0.1);
+  border-radius: 2rem;
+  color: #800000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(128, 0, 0, 0.2);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #800000;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
 /* Buttons */
 .primary-button, .secondary-button {
-  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;
-  border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  text-decoration: none;
 }
-.primary-button { background-color: #ff4d4f; color: white; }
-.primary-button:hover { background-color: #d9363e; }
-.secondary-button { background: #ffffff; color: #475569; border-color: #e2e8f0; }
-.secondary-button:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+
+.primary-button {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  color: white;
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(128, 0, 0, 0.3);
+}
+
+.secondary-button {
+  background: #ffffff;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+.secondary-button:hover {
+  border-color: #800000;
+  color: #800000;
+  background: linear-gradient(135deg, rgba(128, 0, 0, 0.05) 0%, rgba(92, 0, 0, 0.05) 100%);
+}
 
 /* Layout */
 .remote-layout {

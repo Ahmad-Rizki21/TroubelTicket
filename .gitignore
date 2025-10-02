@@ -1,3 +1,4 @@
+# Python
 *.pyc
 __pycache__/
 *.py[cod]
@@ -16,11 +17,72 @@ pip-delete-this-directory.txt
 nosetests.xml
 coverage.xml
 *.cover
-*.log
 .git/
 .mypy_cache/
 .pytest_cache/
 .hypothesis/
-.DS_Store
-static/uploads/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
 .env
+.env.test
+.env.local
+.env.production
+.env.development
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Application specific
+static/uploads/
+logs/
+*.db
+*.sqlite3
+backups/
+secrets/
+ssl/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# Security scanning reports
+bandit-report.json
+safety-report.json
+trivy-results.sarif
+coverage.xml
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Docker
+.dockerignore
+
+# Build artifacts
+dist/
+build/
+
+# Database files
+*.db-shm
+*.db-wal
+
+# Script files
+clclaude_code_prod_zai.sh

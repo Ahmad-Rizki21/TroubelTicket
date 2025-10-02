@@ -2,16 +2,26 @@
   <div class="users-page">
     <header class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Manajemen Pengguna</h1>
-        <p class="page-subtitle">Tambah, edit, dan kelola akun pengguna di sini.</p>
-      </div>
-      <div class="header-actions">
-        <button class="primary-button" @click="openCreateModal">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Tambah Pengguna</span>
-        </button>
+        <div class="title-section">
+          <h1 class="page-title">
+            <span class="title-gradient">Manajemen Pengguna</span>
+          </h1>
+          <p class="page-subtitle">Tambah, edit, dan kelola akun pengguna di sini.</p>
+        </div>
+        <div class="header-stats">
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Live</span>
+          </div>
+          <div class="header-actions">
+            <button class="primary-button" @click="openCreateModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Tambah Pengguna</span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -397,25 +407,93 @@ watch([searchQuery, roleFilter], () => {
   margin-bottom: 1.5rem;
 }
 
-/* Header */
+/* Header Styles - Similar to Dashboard */
 .page-header {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.title-section {
+  flex: 1;
+}
+
 .page-title {
-  font-size: 2.25rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  color: #1e293b;
-  margin: 0;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
 }
+
+.title-gradient {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .page-subtitle {
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 2vw, 1.125rem);
   color: #64748b;
-  margin-top: 0.25rem;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(128, 0, 0, 0.1);
+  border-radius: 2rem;
+  color: #800000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(128, 0, 0, 0.2);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #800000;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 /* Buttons */
@@ -424,7 +502,7 @@ watch([searchQuery, roleFilter], () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -434,9 +512,8 @@ watch([searchQuery, roleFilter], () => {
   transition: all 0.3s ease;
 }
 .primary-button:hover {
-  background-color: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 15px -3px rgba(128, 0, 0, 0.3);
 }
 
 /* Filters */
@@ -470,8 +547,8 @@ watch([searchQuery, roleFilter], () => {
 }
 .search-input:focus, .filter-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: #800000;
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
   background-color: #ffffff;
 }
 .filters {
@@ -565,7 +642,7 @@ watch([searchQuery, roleFilter], () => {
   background-color: #f1f5f9;
   color: #1e293b;
 }
-.action-button.view:hover { color: #3b82f6; }
+.action-button.view:hover { color: #800000; }
 .action-button.edit:hover { color: #f59e0b; }
 .action-button.delete:hover { color: #ef4444; }
 
@@ -598,8 +675,8 @@ watch([searchQuery, roleFilter], () => {
   transition: all 0.2s ease;
 }
 .pagination-button:hover:not(:disabled) {
-  border-color: #3b82f6;
-  color: #3b82f6;
+  border-color: #800000;
+  color: #800000;
 }
 .pagination-button:disabled {
   opacity: 0.5;
@@ -702,8 +779,8 @@ watch([searchQuery, roleFilter], () => {
 }
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: #800000;
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
   background-color: #ffffff;
 }
 .modal-actions {

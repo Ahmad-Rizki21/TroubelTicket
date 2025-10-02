@@ -2,16 +2,26 @@
   <div class="roles-permissions-page">
     <header class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Manajemen Peran & Izin</h1>
-        <p class="page-subtitle">Atur peran pengguna dan izin akses sistem.</p>
-      </div>
-      <div class="header-actions">
-        <button class="primary-button" @click="openCreateRoleModal">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Tambah Peran</span>
-        </button>
+        <div class="title-section">
+          <h1 class="page-title">
+            <span class="title-gradient">Manajemen Peran & Izin</span>
+          </h1>
+          <p class="page-subtitle">Atur peran pengguna dan izin akses sistem.</p>
+        </div>
+        <div class="header-stats">
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Live</span>
+          </div>
+          <div class="header-actions">
+            <button class="primary-button" @click="openCreateRoleModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Tambah Peran</span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -462,25 +472,93 @@ watch(activeTab, (newTab) => {
   margin-bottom: 1.5rem;
 }
 
-/* Header */
+/* Header Styles - Similar to Dashboard */
 .page-header {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.title-section {
+  flex: 1;
+}
+
 .page-title {
-  font-size: 2.25rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  color: #1e293b;
-  margin: 0;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
 }
+
+.title-gradient {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .page-subtitle {
-  font-size: 1.125rem;
+  font-size: clamp(1rem, 2vw, 1.125rem);
   color: #64748b;
-  margin-top: 0.25rem;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(128, 0, 0, 0.1);
+  border-radius: 2rem;
+  color: #800000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(128, 0, 0, 0.2);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #800000;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 /* Tabs */
@@ -517,7 +595,7 @@ watch(activeTab, (newTab) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -527,9 +605,8 @@ watch(activeTab, (newTab) => {
   transition: all 0.3s ease;
 }
 .primary-button:hover {
-  background-color: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 15px -3px rgba(128, 0, 0, 0.3);
 }
 
 /* Table */
@@ -557,7 +634,7 @@ watch(activeTab, (newTab) => {
 }
 .role-id, .permission-id {
   font-weight: 600;
-  color: #3b82f6;
+  color: #800000;
 }
 .role-name, .permission-name {
   font-weight: 600;

@@ -3,16 +3,26 @@
     <!-- Page Header -->
     <header class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Ticket Management</h1>
-        <p class="page-subtitle">Manage, track, and resolve all issue tickets here.</p>
-      </div>
-      <div class="header-actions">
-        <button class="primary-button" @click="openCreateModal">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Create New Ticket</span>
-        </button>
+        <div class="title-section">
+          <h1 class="page-title">
+            <span class="title-gradient">Ticket Management</span>
+          </h1>
+          <p class="page-subtitle">Manage, track, and resolve all issue tickets here.</p>
+        </div>
+        <div class="header-stats">
+          <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Live</span>
+          </div>
+          <div class="header-actions">
+            <router-link to="/tickets/create" class="primary-button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Create New Ticket</span>
+            </router-link>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -151,74 +161,7 @@
     </div>
   </div>
 
-  <!-- Create/Edit Ticket Modal -->
-  <transition name="modal-fade">
-    <div v-if="showModal" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h2 class="modal-title">{{ isEditing ? 'Edit Ticket' : 'Create New Ticket' }}</h2>
-          <button class="close-button" @click="closeModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <form @submit.prevent="saveTicket" class="modal-form">
-          <div class="form-group">
-            <label for="title">Ticket Title</label>
-            <input type="text" id="title" v-model="currentTicket.title" required placeholder="e.g., Slow internet connection">
-          </div>
-          <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" v-model="currentTicket.description" rows="4" placeholder="Describe the issue in detail..."></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reporter_name">Reporter Name</label>
-              <input type="text" id="reporter_name" v-model="currentTicket.reporter_name" required placeholder="Enter reporter's name">
-            </div>
-            <div class="form-group">
-              <label for="reporter_contact">Reporter Contact</label>
-              <input type="text" id="reporter_contact" v-model="currentTicket.reporter_contact" placeholder="Enter reporter's contact info">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="category">Category</label>
-              <select id="category" v-model="currentTicket.category">
-                <option value="Network">Network</option>
-                <option value="Hardware">Hardware</option>
-                <option value="Software">Software</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="priority">Priority</label>
-              <select id="priority" v-model="currentTicket.priority" disabled>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="assigned_to">Assigned To</label>
-            <select id="assigned_to" v-model="currentTicket.assigned_to">
-              <option value="">Select technician</option>
-              <option value="1">Technician A</option>
-              <option value="2">Technician B</option>
-              <option value="3">Technician C</option>
-            </select>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="secondary-button" @click="closeModal">Cancel</button>
-            <button type="submit" class="primary-button save-button">{{ isEditing ? 'Save Changes' : 'Create Ticket' }}</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </transition>
-
+  
   <!-- View Ticket Detail Modal (Redesigned) -->
   <transition name="modal-fade">
     <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
@@ -342,17 +285,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import type { Ticket, TicketCreate, TicketUpdate } from '../api/ticketAPI';
+import type { Ticket } from '../api/ticketAPI';
 import { ticketAPI } from '../api/ticketAPI';
 
 // State management
-const showModal = ref(false);
 const showDetailModal = ref(false);
 const showDeleteModal = ref(false);
 const showClosedTickets = ref(false);
 
 const ticketToDelete = ref<Ticket | null>(null);
-const isEditing = ref(false);
 const searchQuery = ref('');
 const dateFilterFrom = ref('');
 const dateFilterTo = ref('');
@@ -390,30 +331,6 @@ const selectedTicket = ref<ExtendedTicket>({
   assigned_to: '',
 });
 
-interface FormTicket {
-  title: string;
-  description?: string;
-  priority: string;
-  reporter_name: string;
-  reporter_contact?: string;
-  category?: string;
-  ticket_code?: string;
-  status?: string;
-  assignee_id?: number;
-  assigned_to?: string;
-  summary_problem?: string;
-  summary_action?: string;
-}
-
-const currentTicket = ref<FormTicket>({
-  title: '',
-  description: '',
-  priority: 'High',
-  reporter_name: '',
-  reporter_contact: '',
-  category: 'Network',
-  ticket_code: ''
-});
 
 // Computed properties for pagination
 const totalPages = computed(() => Math.ceil(filteredTickets.value.length / itemsPerPage.value));
@@ -471,71 +388,11 @@ const applyFilters = () => {
   currentPage.value = 1; // Reset to first page when filters change
 };
 
-const openCreateModal = () => {
-  isEditing.value = false;
-  currentTicket.value = { 
-    title: '', 
-    description: '', 
-    priority: 'High',
-    reporter_name: '', 
-    reporter_contact: '',
-    category: 'Network',
-    ticket_code: generateTicketCode(),
-    assigned_to: '',
-    status: 'Open'
-  };
-  showModal.value = true;
-};
-
-const closeModal = () => {
-  showModal.value = false;
-};
 
 const closeDetailModal = () => {
   showDetailModal.value = false;
 };
 
-const saveTicket = async () => {
-  try {
-    if (isEditing.value) {
-      const ticketId = selectedTicket.value.id;
-      const updateData: TicketUpdate = {
-        title: currentTicket.value.title,
-        description: currentTicket.value.description,
-        status: currentTicket.value.status,
-        priority: currentTicket.value.priority,
-        reporter_contact: currentTicket.value.reporter_contact,
-        assignee_id: currentTicket.value.assignee_id,
-        summary_problem: currentTicket.value.summary_problem,
-        summary_action: currentTicket.value.summary_action
-      };
-      Object.keys(updateData).forEach(key => {
-        const typedKey = key as keyof TicketUpdate;
-        if (typedKey !== 'reporter_contact' && (updateData[typedKey] === undefined || updateData[typedKey] === '')) {
-          delete updateData[typedKey];
-        }
-      });
-      
-      await ticketAPI.updateTicket(ticketId, updateData);
-    } else {
-      const createData: TicketCreate = {
-        title: currentTicket.value.title,
-        description: currentTicket.value.description || '',
-        priority: currentTicket.value.priority,
-        reporter_name: currentTicket.value.reporter_name,
-        reporter_contact: currentTicket.value.reporter_contact,
-        ticket_code: currentTicket.value.ticket_code || generateTicketCode()
-      };
-      
-      await ticketAPI.createTicket(createData);
-    }
-    
-    await loadTickets();
-    closeModal();
-  } catch (error) {
-    console.error('Error saving ticket:', error);
-  }
-};
 
 
 const viewTicket = async (ticket: Ticket) => {
@@ -601,29 +458,6 @@ const loadTickets = async () => {
   }
 };
 
-const generateTicketCode = (): string => {
-  if (allTickets.value.length === 0) {
-    return 'AG-0000001';
-  }
-  
-  let maxNumber = 0;
-  const ticketPattern = /^AG-(\d+)$/;
-  
-  allTickets.value.forEach(ticket => {
-    const match = ticket.ticket_code.match(ticketPattern);
-    if (match && match[1]) {
-      const number = parseInt(match[1], 10);
-      if (number > maxNumber) {
-        maxNumber = number;
-      }
-    }
-  });
-  
-  const nextNumber = maxNumber + 1;
-  const paddedNumber = nextNumber.toString().padStart(7, '0');
-  
-  return `AG-${paddedNumber}`;
-};
 
 const getExportUrl = (format: 'pdf' | 'excel'): string => {
   if (!selectedTicket.value?.id) {
@@ -699,16 +533,135 @@ watch([searchQuery, showClosedTickets], () => {
   margin-bottom: 1.5rem;
 }
 
-/* Header */
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-.page-title { font-size: 2.25rem; font-weight: 800; color: #1e293b; margin: 0; }
-.page-subtitle { font-size: 1.125rem; color: #64748b; margin-top: 0.25rem; }
+/* Header Styles - Similar to Dashboard */
+.page-header {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.title-section {
+  flex: 1;
+}
+
+.page-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.1;
+}
+
+.title-gradient {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-subtitle {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(128, 0, 0, 0.1);
+  border-radius: 2rem;
+  color: #800000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(128, 0, 0, 0.2);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #800000;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
 /* Buttons */
-.primary-button { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background-color: #ff4d4f; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-.primary-button:hover { background-color: #d9363e; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-.secondary-button { padding: 0.75rem 1.5rem; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; color: #64748b; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-.secondary-button:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(128, 0, 0, 0.3);
+}
+
+.secondary-button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.secondary-button:hover {
+  border-color: #800000;
+  color: #800000;
+  background: linear-gradient(135deg, rgba(128, 0, 0, 0.05) 0%, rgba(92, 0, 0, 0.05) 100%);
+}
 
 /* Filters & Options */
 .filters-card {
