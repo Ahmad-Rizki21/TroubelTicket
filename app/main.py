@@ -22,16 +22,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Daftarkan setiap router ke aplikasi utama
-app.include_router(tickets.router)
-app.include_router(users.router)
-app.include_router(auth.router)
-app.include_router(ticket_actions.router)
-app.include_router(roles.router)
-app.include_router(permissions.router)
-app.include_router(remotes.router)
-app.include_router(reports.router)
-app.include_router(dashboard.router)
+# Daftarkan setiap router ke aplikasi utama dengan prefix /api untuk production
+app.include_router(tickets.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
+app.include_router(ticket_actions.router, prefix="/api")
+app.include_router(roles.router, prefix="/api")
+app.include_router(permissions.router, prefix="/api")
+app.include_router(remotes.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")
 
 @app.on_event("startup")
 async def startup_event():
