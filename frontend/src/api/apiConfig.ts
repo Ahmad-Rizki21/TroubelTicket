@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create an axios instance with base configuration
 // Use relative path in development (will be proxied) or configured base URL
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'http://127.0.0.1:8000'),
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://127.0.0.1:8000'),
   headers: {
     'Content-Type': 'application/json',
   },
