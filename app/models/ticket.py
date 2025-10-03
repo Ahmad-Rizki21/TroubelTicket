@@ -11,6 +11,7 @@ class Ticket(Base):
     description = Column(Text, nullable=True)
     status = Column(String(50), default="Open")
     priority = Column(String(50), default="Medium")
+    category = Column(String(50), default="Lainnya")
     reporter_name = Column(String(100))
     reporter_contact = Column(String(100), nullable=True)
     assignee_id = Column(Integer, ForeignKey("users.id"), nullable=True)

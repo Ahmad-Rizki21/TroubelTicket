@@ -36,16 +36,29 @@
             <div class="section-divider"></div>
 
             <div class="form-group">
-              <label for="title">Ticket Title *</label>
-              <input
-                type="text"
-                id="title"
-                v-model="currentTicket.title"
+              <label for="site_name">Site Name *</label>
+              <select
+                id="site_name"
+                v-model="currentTicket.selected_site_id"
+                @change="onSiteChange"
                 required
-                placeholder="e.g., Slow internet connection in Office Area"
-                class="form-input"
+                class="form-select"
+                :disabled="isLoadingRemotes"
               >
-              <small class="form-help">Brief description of the issue</small>
+                <option value="">Select a site</option>
+                <option
+                  v-for="remote in remotes"
+                  :key="remote.id"
+                  :value="remote.id"
+                >
+                  {{ remote.site_name }} ({{ remote.site_id_poi || 'No ID' }})
+                </option>
+              </select>
+              <small class="form-help">
+                {{ isLoadingRemotes ? 'Loading sites...' : 'Select the site where the issue occurred' }}
+              </small>
+              <!-- Hidden field to store the title for API submission -->
+              <input type="hidden" v-model="currentTicket.title" required>
             </div>
 
             <div class="form-group">
@@ -112,10 +125,15 @@
 
               <div class="form-group">
                 <label for="priority">Priority Level</label>
-                <select id="priority" v-model="currentTicket.priority" disabled class="form-select">
-                  <option value="High">High - Significant business impact</option>
-                </select>
-                <small class="form-help">Priority automatically set to High for immediate attention</small>
+                <div class="priority-display">
+                  <div class="priority-badge high">
+                    <span class="priority-icon">🔥</span>
+                    HIGH PRIORITY
+                  </div>
+                  <small class="form-help">All tickets are marked as High priority for immediate attention</small>
+                </div>
+                <!-- Hidden field to ensure HIGH priority is always submitted -->
+                <input type="hidden" v-model="currentTicket.priority" value="High">
               </div>
             </div>
 
@@ -181,6 +199,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import type { TicketCreate } from '../api/ticketAPI';
 import { ticketAPI } from '../api/ticketAPI';
+import { remotesAPI, type Remote } from '../api/remotesAPI';
 
 const router = useRouter();
 
@@ -188,6 +207,8 @@ const router = useRouter();
 const isSubmitting = ref(false);
 const showSuccessModal = ref(false);
 const createdTicketCode = ref('');
+const remotes = ref<Remote[]>([]);
+const isLoadingRemotes = ref(false);
 
 interface FormTicket {
   title: string;
@@ -196,28 +217,45 @@ interface FormTicket {
   reporter_name: string;
   reporter_contact?: string;
   category?: string;
-  ticket_code?: string;
   status?: string;
   assignee_id?: number;
   assigned_to?: string;
+  selected_site_id?: number;
 }
 
 const currentTicket = ref<FormTicket>({
   title: '',
   description: '',
-  priority: 'Medium',
+  priority: 'High',
   reporter_name: '',
   reporter_contact: '',
   category: '',
-  ticket_code: '',
   assigned_to: '',
-  status: 'Open'
+  status: 'Open',
+  selected_site_id: undefined
 });
 
-const generateTicketCode = (): string => {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return `AG-${timestamp}${random}`;
+
+const fetchRemotes = async () => {
+  isLoadingRemotes.value = true;
+  try {
+    const response = await remotesAPI.getAllRemotes();
+    remotes.value = response.data;
+  } catch (error) {
+    console.error('Error fetching remotes:', error);
+    alert('Error loading site names. Please refresh the page.');
+  } finally {
+    isLoadingRemotes.value = false;
+  }
+};
+
+const onSiteChange = () => {
+  const selectedRemote = remotes.value.find(remote => remote.id === currentTicket.value.selected_site_id);
+  if (selectedRemote) {
+    currentTicket.value.title = selectedRemote.site_name;
+  } else {
+    currentTicket.value.title = '';
+  }
 };
 
 const saveTicket = async () => {
@@ -230,11 +268,11 @@ const saveTicket = async () => {
       priority: currentTicket.value.priority,
       reporter_name: currentTicket.value.reporter_name,
       reporter_contact: currentTicket.value.reporter_contact,
-      ticket_code: currentTicket.value.ticket_code || generateTicketCode()
+      category: currentTicket.value.category
     };
 
     const response = await ticketAPI.createTicket(createData);
-    createdTicketCode.value = createData.ticket_code || response.data.ticket_code;
+    createdTicketCode.value = response.data.ticket_code;
 
     // Show success modal
     showSuccessModal.value = true;
@@ -258,21 +296,21 @@ const createAnotherTicket = () => {
   currentTicket.value = {
     title: '',
     description: '',
-    priority: 'Medium',
+    priority: 'High',
     reporter_name: '',
     reporter_contact: '',
     category: '',
-    ticket_code: generateTicketCode(),
     assigned_to: '',
-    status: 'Open'
+    status: 'Open',
+    selected_site_id: undefined
   };
 
   showSuccessModal.value = false;
 };
 
-onMounted(() => {
-  // Generate initial ticket code
-  currentTicket.value.ticket_code = generateTicketCode();
+onMounted(async () => {
+  // Fetch remotes data
+  await fetchRemotes();
 });
 </script>
 
@@ -535,6 +573,43 @@ onMounted(() => {
 
 .form-select {
   cursor: pointer;
+}
+
+/* Priority Badge Styles */
+.priority-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 2px solid;
+}
+
+.priority-badge.high {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+  color: #dc2626;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.priority-icon {
+  font-size: 1rem;
+  animation: flicker 2s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .form-help {

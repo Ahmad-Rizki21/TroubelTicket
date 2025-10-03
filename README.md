@@ -8,26 +8,32 @@ Sistem Trouble Ticket adalah aplikasi web modern yang dirancang untuk mengelola 
 - **API RESTful** - menyediakan endpoint untuk semua operasi sistem
 - **Otentikasi & Otorisasi** - login/logout, pengelolaan sesi pengguna
 - **Manajemen Pengguna** - CRUD pengguna, peran dan izin
-- **Manajemen Tiket** - pembuatan, pengelolaan, dan pelacakan tiket
+- **Manajemen Tiket** - pembuatan, pengelolaan, dan pelacakan tiket dengan sequential ID generation
 - **Manajemen Tindakan Tiket** - mencatat tindakan yang diambil terhadap tiket
 - **Sistem Peran & Izin** - kontrol akses berdasarkan peran (RBAC)
 - **Reset Password** - fitur pemulihan kata sandi
 - **Upload File** - dukungan untuk mengunggah gambar terkait tiket
-- **U: Dashboard Analytics** - ringkasan statistik real-time tiket, status distribusi, dan performa sistem
-- **U: Remote Management** - manajemen lokasi remote dan BTS (Base Transceiver Station) dengan integrasi peta
-- **U: Laporan & Analitik** - fitur pelaporan komprehensif dengan visualisasi data dan metrik performa
+- **Advanced Business Logic** - validasi bisnis untuk deletion prevention dan workflow management
+- **Remote Sites Integration** - integrasi dengan tabel Remotes untuk Site Name selection
+- **Dashboard Analytics** - ringkasan statistik real-time tiket, status distribusi, dan performa sistem
+- **Remote Management** - manajemen lokasi remote dan BTS (Base Transceiver Station) dengan integrasi peta
+- **Laporan & Analitik** - fitur pelaporan komprehensif dengan visualisasi data dan metrik performa
+- **Export Functionality** - export PDF dan Excel untuk tiket dan laporan
 
 ### Frontend (Vue.js)
 - **Antarmuka Responsif** - tampilan yang menyesuaikan dengan berbagai perangkat
 - **Dashboard** - ringkasan status tiket dan statistik real-time dengan berbagai grafik
-- **Manajemen Tiket** - membuat, melihat, dan memperbarui tiket
-- **Manajemen Pengguna** - pengaturan akun dan informasi pengguna
-- **Manajemen Peran & Izin** - konfigurasi kontrol akses
+- **Advanced Ticket Creation** - form pembuatan tiket dengan Site Name dropdown dan fixed High priority
+- **Manajemen Tiket** - membuat, melihat, dan memperbarui tiket dengan business logic validation
+- **Manajemen Pengguna** - pengaturan akun dan informasi pengguna dengan interface berbahasa Inggris
+- **Manajemen Peran & Izin** - konfigurasi kontrol akses dengan interface berbahasa Inggris
 - **Laporan** - analisis dan ringkasan tiket dengan filter berdasarkan kategori dan tanggal
-- **Pengaturan Sistem** - konfigurasi aplikasi
-- **M: Tampilan Peta untuk Lokasi Remote** - visualisasi lokasi BTS menggunakan peta interaktif
-- **U: Grafik Analitik** - berbagai jenis grafik untuk analisis data tiket
-- **U: Filter dan Sorting Laporan** - kemampuan untuk filter berdasarkan kategori, status, dan rentang tanggal
+- **Pengaturan Sistem** - konfigurasi aplikasi dengan interface berbahasa Inggris
+- **Tampilan Peta untuk Lokasi Remote** - visualisasi lokasi BTS menggunakan peta interaktif
+- **Grafik Analitik** - berbagai jenis grafik untuk analisis data tiket
+- **Filter dan Sorting Laporan** - kemampuan untuk filter berdasarkan kategori, status, dan rentang tanggal
+- **Visual Priority System** - badge priority dengan animasi untuk menunjukkan urgency
+- **Enhanced Modal System** - modal untuk konfirmasi dan peringatan business logic
 
 ## Teknologi yang Digunakan
 
@@ -183,16 +189,19 @@ sistem-tiket-backend/
 - `GET /permissions/` - Dapatkan semua izin
 - `PUT /permissions/` - Perbarui izin
 
-### U: Remote Management
+### Remote Management
 - `GET /remotes/` - Dapatkan semua lokasi remote
 - `POST /remotes/` - Buat remote baru
 - `GET /remotes/{id}` - Dapatkan remote berdasarkan ID
 - `PUT /remotes/{id}` - Perbarui remote
 - `DELETE /remotes/{id}` - Hapus remote
 
-### U: Laporan & Dashboard
+### Laporan & Dashboard
 - `GET /reports/` - Dapatkan laporan dan analitik
 - `GET /dashboard/` - Dapatkan data ringkasan dashboard
+- `GET /reports/{ticket_id}/export/pdf` - Export tiket ke PDF
+- `GET /reports/{ticket_id}/export/excel` - Export tiket ke Excel
+- `GET /reports/export/excel` - Export semua tiket ke Excel
 
 ## Database
 
@@ -224,7 +233,41 @@ Jika Anda mengalami masalah dengan aplikasi, silakan buka isu di halaman GitHub 
 
 ## Changelog / Rilis Terbaru
 
-### Version 2.1.0 (Latest) - UI/UX Enhancement & Theme Standardization
+### Version 2.2.0 (Latest) - Advanced Ticket Management & Business Logic Enhancement
+- **✨ Major New Features:**
+  - **Site Name Integration**: Dropdown Site Name yang terintegrasi dengan tabel Remotes untuk form pembuatan ticket
+  - **Sequential Ticket ID**: Format ticket ID berurutan AG-00000001, AG-00000002, dst. sesuai standar perusahaan
+  - **Fixed High Priority**: Semua ticket otomatis High priority dengan badge visual yang menarik
+  - **Advanced Deletion Logic**: Business logic untuk mencegah penghapusan ticket dengan status "Open"
+  - **Enhanced Category System**: Perbaikan sistem kategori ticket dengan field yang lengkap
+  - **Remote Sites API**: API lengkap untuk manajemen lokasi remote sites dengan integrasi database
+
+- **🎨 UI/UX Improvements:**
+  - **Modern Create Ticket Form**: Redesign form pembuatan ticket dengan Site Name dropdown
+  - **Priority Badge**: Visual badge dengan animasi api untuk High priority tickets
+  - **Enhanced Modal System**: Modal peringatan untuk business logic validation
+  - **Improved Loading States**: Loading indicators untuk API calls dan data fetching
+  - **Responsive Site Dropdown**: Dropdown yang menampilkan site_name dan site_id_poi
+
+- **🔧 Technical Enhancements:**
+  - **Backend-Generated Ticket Codes**: Sistem generate ID otomatis di backend untuk konsistensi
+  - **Business Logic Validation**: Validasi bisnis di backend dan frontend untuk deletion prevention
+  - **API Schema Updates**: Update schemas untuk mendukung field kategori dan sequential generation
+  - **Enhanced CRUD Operations**: Improvements pada database operations untuk ticket creation
+  - **Database Migration**: Migration untuk menambahkan category column ke tickets table
+
+- **🛡️ Security & Validation:**
+  - **Status-Based Deletion Control**: Mencegah penghapusan ticket yang masih "Open"
+  - **Form Validation**: Enhanced validation untuk required fields dan business rules
+  - **User Guidance**: Clear error messages dan guidance untuk user workflows
+
+- **🐛 Bug Fixes:**
+  - Fixed category display issues (from "Uncategorized" to proper categories)
+  - Resolved ticket code generation consistency
+  - Fixed API responses untuk Remotes integration
+  - Corrected form submission validation
+
+### Version 2.1.0 - UI/UX Enhancement & Theme Standardization
 - **✨ New Features:**
   - Separate Create Ticket page dengan layout 2-kolom yang responsive
   - Card-style header design untuk seluruh halaman dengan tema maroon konsisten

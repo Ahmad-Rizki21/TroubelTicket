@@ -54,9 +54,20 @@ def update_ticket(ticket_id: int, ticket: schemas.TicketUpdate, db: Session = De
 
 @router.delete("/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_ticket(ticket_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(has_permission("ticket:delete"))):
-    db_ticket = crud.delete_ticket(db=db, ticket_id=ticket_id)
+    # Ambil data tiket terlebih dahulu untuk pengecekan status
+    db_ticket = crud.get_ticket(db, ticket_id=ticket_id)
     if db_ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
+
+    # Validasi bisnis: Tiket dengan status "Open" tidak bisa dihapus
+    if db_ticket.status == "Open":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tiket dengan status 'Open' tidak dapat dihapus. Silakan tutup tiket terlebih dahulu sebelum menghapus."
+        )
+
+    # Jika status bukan "Open", lanjutkan proses penghapusan
+    deleted_ticket = crud.delete_ticket(db=db, ticket_id=ticket_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # Helper function to calculate duration

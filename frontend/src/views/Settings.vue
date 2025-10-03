@@ -5,9 +5,9 @@
       <div class="header-content">
         <div class="title-section">
           <h1 class="page-title">
-            <span class="title-gradient">Pengaturan Sistem</span>
+            <span class="title-gradient">System Settings</span>
           </h1>
-          <p class="page-subtitle">Kelola konfigurasi dan preferensi sistem</p>
+          <p class="page-subtitle">Manage system configuration and preferences</p>
         </div>
         <div class="header-stats">
           <div class="live-indicator">
@@ -40,80 +40,80 @@
         <!-- General Settings -->
         <div v-if="activeSection === 'general'" class="settings-section">
           <div class="section-header">
-            <h2 class="section-title">Pengaturan Umum</h2>
-            <p class="section-description">Konfigurasi dasar sistem trouble ticket</p>
+            <h2 class="section-title">General Settings</h2>
+            <p class="section-description">Basic trouble ticket system configuration</p>
           </div>
-          
+
           <div class="settings-form">
             <div class="form-group">
-              <label for="siteName">Nama Situs</label>
-              <input 
-                type="text" 
-                id="siteName" 
-                v-model="settingsStore.siteName" 
+              <label for="siteName">Site Name</label>
+              <input
+                type="text"
+                id="siteName"
+                v-model="settingsStore.siteName"
                 class="form-input"
               >
             </div>
-            
+
             <div class="form-group">
-              <label for="timezone">Zona Waktu</label>
+              <label for="timezone">Timezone</label>
               <select id="timezone" v-model="settingsStore.timezone" class="form-select">
                 <option value="Asia/Jakarta">Asia/Jakarta (UTC+7)</option>
                 <option value="Asia/Makassar">Asia/Makassar (UTC+8)</option>
                 <option value="Asia/Jayapura">Asia/Jayapura (UTC+9)</option>
               </select>
             </div>
-            
+
             <div class="form-group">
-              <label for="language">Bahasa</label>
+              <label for="language">Language</label>
               <select id="language" v-model="settingsStore.language" class="form-select">
                 <option value="id">Bahasa Indonesia</option>
                 <option value="en">English</option>
               </select>
             </div>
           </div>
-          
+
           <div class="form-actions">
-            <button class="save-button" @click="saveGeneralSettings">Simpan Perubahan</button>
+            <button class="save-button" @click="saveGeneralSettings">Save Changes</button>
           </div>
         </div>
 
         <!-- Account Settings -->
         <div v-if="activeSection === 'account'" class="settings-section">
           <div class="section-header">
-            <h2 class="section-title">Akun Saya</h2>
-            <p class="section-description">Kelola nama pengguna Anda</p>
+            <h2 class="section-title">My Account</h2>
+            <p class="section-description">Manage your username</p>
           </div>
-          
+
           <div class="settings-form">
             <div class="form-group">
-              <label for="username">Nama Pengguna</label>
-              <input 
-                type="text" 
-                id="username" 
-                v-model="accountSettings.username" 
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                v-model="accountSettings.username"
                 class="form-input"
-                placeholder="Nama pengguna Anda"
+                placeholder="Your username"
               >
             </div>
           </div>
-          
+
           <div class="form-actions">
-            <button class="save-button" @click="saveAccountSettings">Simpan Nama Pengguna</button>
+            <button class="save-button" @click="saveAccountSettings">Save Username</button>
           </div>
         </div>
 
         <!-- System Information -->
         <div v-if="activeSection === 'system'" class="settings-section">
           <div class="section-header">
-            <h2 class="section-title">Informasi Sistem</h2>
-            <p class="section-description">Detail teknis dan status sistem</p>
+            <h2 class="section-title">System Information</h2>
+            <p class="section-description">Technical details and system status</p>
           </div>
           
           <div class="system-info-grid">
             <div class="info-card">
               <div class="info-header">
-                <h3 class="info-title">Versi Aplikasi</h3>
+                <h3 class="info-title">Application Version</h3>
                 <div class="info-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
@@ -136,7 +136,7 @@
                 <p class="info-label">Status: Connected</p>
               </div>
             </div>
-            
+
             <div class="info-card">
               <div class="info-header">
                 <h3 class="info-title">Server</h3>
@@ -158,7 +158,7 @@
                 </div>
               </div>
               <div class="info-content">
-                <p class="info-value success">Operasional</p>
+                <p class="info-value success">Operational</p>
                 <p class="info-label">Uptime: 99.9%</p>
               </div>
             </div>
@@ -209,17 +209,17 @@ const SystemIcon = {
 const settingsSections = ref([
   {
     id: 'general',
-    title: 'Umum',
+    title: 'General',
     icon: markRaw(GeneralIcon)
   },
   {
     id: 'account',
-    title: 'Akun Saya',
+    title: 'My Account',
     icon: markRaw(UserIcon)
   },
   {
     id: 'system',
-    title: 'Sistem',
+    title: 'System',
     icon: markRaw(SystemIcon)
   }
 ]);
@@ -234,13 +234,13 @@ const saveGeneralSettings = () => {
   settingsStore.setSiteName(settingsStore.siteName);
   settingsStore.setTimezone(settingsStore.timezone);
   settingsStore.setLanguage(settingsStore.language);
-  alert('Pengaturan umum berhasil disimpan!');
+  alert('General settings saved successfully!');
 };
 
 const saveAccountSettings = () => {
   // Here you would typically call an API to update the username
   // e.g., userAPI.updateUser(authStore.user.id, { username: accountSettings.value.username })
-  alert(`Nama pengguna berhasil disimpan menjadi: ${accountSettings.value.username}`)
+  alert(`Username saved as: ${accountSettings.value.username}`)
 };
 
 // Lifecycle hook

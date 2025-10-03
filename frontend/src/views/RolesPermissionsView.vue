@@ -4,9 +4,9 @@
       <div class="header-content">
         <div class="title-section">
           <h1 class="page-title">
-            <span class="title-gradient">Manajemen Peran & Izin</span>
+            <span class="title-gradient">Role & Permission Management</span>
           </h1>
-          <p class="page-subtitle">Atur peran pengguna dan izin akses sistem.</p>
+          <p class="page-subtitle">Manage user roles and system access permissions.</p>
         </div>
         <div class="header-stats">
           <div class="live-indicator">
@@ -18,7 +18,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span>Tambah Peran</span>
+              <span>Add Role</span>
             </button>
           </div>
         </div>
@@ -27,17 +27,17 @@
 
     <!-- Tabs for Roles and Permissions -->
     <div class="tabs">
-      <button 
-        :class="['tab-button', { active: activeTab === 'roles' }]" 
+      <button
+        :class="['tab-button', { active: activeTab === 'roles' }]"
         @click="activeTab = 'roles'"
       >
-        Peran (Roles)
+        Roles
       </button>
-      <button 
-        :class="['tab-button', { active: activeTab === 'permissions' }]" 
+      <button
+        :class="['tab-button', { active: activeTab === 'permissions' }]"
         @click="activeTab = 'permissions'"
       >
-        Izin (Permissions)
+        Permissions
       </button>
     </div>
 
@@ -49,14 +49,14 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Nama Peran</th>
-                <th>Izin Terkait</th>
-                <th>Aksi</th>
+                <th>Role Name</th>
+                <th>Related Permissions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="roles.length === 0">
-                <td colspan="4" class="empty-state">Tidak ada peran yang ditemukan.</td>
+                <td colspan="4" class="empty-state">No roles found.</td>
               </tr>
               <tr v-for="role in roles" :key="role.id">
                 <td class="role-id">#{{ role.id }}</td>
@@ -64,15 +64,15 @@
                 <td>
                   <div class="permissions-list">
                     <span v-for="permission in role.permissions.slice(0, 5)" :key="permission.id" class="permission-tag" :title="permission.name">{{ permission.name }}</span>
-                    <span v-if="role.permissions.length > 5" class="permission-tag more" title="Dan lainnya">+{{ role.permissions.length - 5 }}</span>
+                    <span v-if="role.permissions.length > 5" class="permission-tag more" title="And more">+{{ role.permissions.length - 5 }}</span>
                   </div>
                 </td>
                 <td>
                   <div class="action-buttons">
-                    <button class="action-button edit" @click="openEditRoleModal(role)" title="Edit Peran">
+                    <button class="action-button edit" @click="openEditRoleModal(role)" title="Edit Role">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.5L21.5 5.5M17.5 1.5L9 10V13H12L20.5 4.5L17.5 1.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
-                    <button class="action-button delete" @click="confirmDeleteRole(role)" title="Hapus Peran">
+                    <button class="action-button delete" @click="confirmDeleteRole(role)" title="Delete Role">
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 2.96957 16 3.5V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                   </div>
@@ -93,21 +93,21 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span>Tambah Izin</span>
+              <span>Add Permission</span>
             </button>
           </div>
           <table class="permissions-table">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Nama Izin</th>
-                <th>Dibuat Pada</th>
-                <th>Aksi</th>
+                <th>Permission Name</th>
+                <th>Created At</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="permissions.length === 0">
-                <td colspan="4" class="empty-state">Tidak ada izin yang ditemukan.</td>
+                <td colspan="4" class="empty-state">No permissions found.</td>
               </tr>
               <tr v-for="permission in permissions" :key="permission.id">
                 <td class="permission-id">#{{ permission.id }}</td>
@@ -115,10 +115,10 @@
                 <td>{{ formatDate(permission.created_at) }}</td>
                 <td>
                   <div class="action-buttons">
-                    <button class="action-button edit" @click="openEditPermissionModal(permission)" title="Edit Izin">
+                    <button class="action-button edit" @click="openEditPermissionModal(permission)" title="Edit Permission">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.5L21.5 5.5M17.5 1.5L9 10V13H12L20.5 4.5L17.5 1.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
-                    <button class="action-button delete" @click="confirmDeletePermission(permission)" title="Hapus Izin">
+                    <button class="action-button delete" @click="confirmDeletePermission(permission)" title="Delete Permission">
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 2.96957 16 3.5V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                   </div>
@@ -136,7 +136,7 @@
     <div v-if="showRoleModal" class="modal-overlay" @click="closeRoleModal">
       <div v-if="currentRole" class="modal-content" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">{{ isEditingRole ? 'Edit Peran' : 'Tambah Peran' }}</h2>
+          <h2 class="modal-title">{{ isEditingRole ? 'Edit Role' : 'Add Role' }}</h2>
           <button class="close-button" @click="closeRoleModal">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -145,14 +145,14 @@
         </div>
         <form @submit.prevent="saveRole" class="modal-form">
           <div class="form-group">
-            <label for="roleName">Nama Peran</label>
+            <label for="roleName">Role Name</label>
             <input type="text" id="roleName" v-model="currentRole.name" required>
           </div>
           <div class="form-group">
-            <label>Izin</label>
+            <label>Permissions</label>
             <div class="permissions-header">
-              <button type="button" class="secondary-button small" @click="selectAllPermissions">Pilih Semua</button>
-              <button type="button" class="secondary-button small" @click="deselectAllPermissions">Hapus Semua</button>
+              <button type="button" class="secondary-button small" @click="selectAllPermissions">Select All</button>
+              <button type="button" class="secondary-button small" @click="deselectAllPermissions">Clear All</button>
             </div>
             <div class="permissions-checkbox-group">
               <div v-for="perm in availablePermissions" :key="perm.id" class="checkbox-item">
@@ -162,8 +162,8 @@
             </div>
           </div>
           <div class="modal-actions">
-            <button type="button" class="secondary-button" @click="closeRoleModal">Batal</button>
-            <button type="submit" class="primary-button">{{ isEditingRole ? 'Simpan Perubahan' : 'Tambah Peran' }}</button>
+            <button type="button" class="secondary-button" @click="closeRoleModal">Cancel</button>
+            <button type="submit" class="primary-button">{{ isEditingRole ? 'Save Changes' : 'Add Role' }}</button>
           </div>
         </form>
       </div>
@@ -175,17 +175,17 @@
     <div v-if="showDeleteRoleModal" class="modal-overlay" @click="closeDeleteRoleModal">
       <div class="modal-content confirmation-modal" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">Konfirmasi Penghapusan Peran</h2>
+          <h2 class="modal-title">Confirm Role Deletion</h2>
         </div>
         <div class="modal-body">
           <p v-if="roleToDelete">
-            Apakah Anda yakin ingin menghapus peran <strong>{{ roleToDelete.name }}</strong>?
+            Are you sure you want to delete the role <strong>{{ roleToDelete.name }}</strong>?
           </p>
-          <p class="warning-text">Tindakan ini tidak dapat dibatalkan.</p>
+          <p class="warning-text">This action cannot be undone.</p>
         </div>
         <div class="modal-actions">
-          <button type="button" class="secondary-button" @click="closeDeleteRoleModal">Batal</button>
-          <button type="button" class="primary-button delete-confirm-button" @click="deleteRole">Ya, Hapus</button>
+          <button type="button" class="secondary-button" @click="closeDeleteRoleModal">Cancel</button>
+          <button type="button" class="primary-button delete-confirm-button" @click="deleteRole">Yes, Delete</button>
         </div>
       </div>
     </div>
@@ -196,7 +196,7 @@
     <div v-if="showPermissionModal" class="modal-overlay" @click="closePermissionModal">
       <div v-if="currentPermission" class="modal-content" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">{{ isEditingPermission ? 'Edit Izin' : 'Tambah Izin' }}</h2>
+          <h2 class="modal-title">{{ isEditingPermission ? 'Edit Permission' : 'Add Permission' }}</h2>
           <button class="close-button" @click="closePermissionModal">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -205,12 +205,12 @@
         </div>
         <form @submit.prevent="savePermission" class="modal-form">
           <div class="form-group">
-            <label for="permissionName">Nama Izin</label>
+            <label for="permissionName">Permission Name</label>
             <input type="text" id="permissionName" v-model="currentPermission.name" required>
           </div>
           <div class="modal-actions">
-            <button type="button" class="secondary-button" @click="closePermissionModal">Batal</button>
-            <button type="submit" class="primary-button">{{ isEditingPermission ? 'Simpan Perubahan' : 'Tambah Izin' }}</button>
+            <button type="button" class="secondary-button" @click="closePermissionModal">Cancel</button>
+            <button type="submit" class="primary-button">{{ isEditingPermission ? 'Save Changes' : 'Add Permission' }}</button>
           </div>
         </form>
       </div>
@@ -222,17 +222,17 @@
     <div v-if="showDeletePermissionModal" class="modal-overlay" @click="closeDeletePermissionModal">
       <div class="modal-content confirmation-modal" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">Konfirmasi Penghapusan Izin</h2>
+          <h2 class="modal-title">Confirm Permission Deletion</h2>
         </div>
         <div class="modal-body">
           <p v-if="permissionToDelete">
-            Apakah Anda yakin ingin menghapus izin <strong>{{ permissionToDelete.name }}</strong>?
+            Are you sure you want to delete the permission <strong>{{ permissionToDelete.name }}</strong>?
           </p>
-          <p class="warning-text">Tindakan ini tidak dapat dibatalkan.</p>
+          <p class="warning-text">This action cannot be undone.</p>
         </div>
         <div class="modal-actions">
-          <button type="button" class="secondary-button" @click="closeDeletePermissionModal">Batal</button>
-          <button type="button" class="primary-button delete-confirm-button" @click="deletePermission">Ya, Hapus</button>
+          <button type="button" class="secondary-button" @click="closeDeletePermissionModal">Cancel</button>
+          <button type="button" class="primary-button delete-confirm-button" @click="deletePermission">Yes, Delete</button>
         </div>
       </div>
     </div>

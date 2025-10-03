@@ -133,7 +133,12 @@
                   <a :href="getExportUrlForTicket(ticket, 'pdf')" class="action-button export-pdf" title="Export to PDF" target="_blank">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2v7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 13v7a2 2 0 01-2 2H9a2 2 0 01-2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 22v-5a1 1 0 011-1h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   </a>
-                  <button class="action-button delete" @click="deleteTicket(ticket)" title="Delete Ticket">
+                  <button
+                    class="action-button delete"
+                    :class="{ 'disabled-delete': ticket.status === 'Open' }"
+                    @click="deleteTicket(ticket)"
+                    :title="ticket.status === 'Open' ? 'Cannot delete Open ticket - must close first' : 'Delete Ticket'"
+                  >
                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   </button>
                 </div>
@@ -281,6 +286,58 @@
       </div>
     </div>
   </transition>
+
+  <!-- Cannot Delete Modal (for Open tickets) -->
+  <transition name="modal-fade">
+    <div v-if="showCannotDeleteModal" class="modal-overlay" @click="closeCannotDeleteModal">
+      <div class="modal-content warning-modal" @click.stop>
+        <div class="modal-header warning-header">
+          <div class="warning-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 9v4M12 17h.01M5.07183 19H18.9282C19.5528 19 20.0565 18.4451 19.9952 17.8235L19.0718 8.82353C19.0182 8.27657 18.5568 7.85714 18.0068 7.85714H5.9932C5.44324 7.85714 4.98184 8.27657 4.92818 8.82353L4.00478 17.8235C3.94349 18.4451 4.44719 19 5.07183 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 class="modal-title">Cannot Delete Open Ticket</h2>
+          <button class="close-button" @click="closeCannotDeleteModal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div v-if="cannotDeleteTicket" class="warning-content">
+            <p class="warning-message">
+              <strong>Tiket {{ cannotDeleteTicket.ticket_code }} tidak dapat dihapus karena statusnya masih <span class="status-highlight">Open</span>.</strong>
+            </p>
+            <div class="requirement-box">
+              <h4>Persyaratan untuk menghapus tiket:</h4>
+              <ul>
+                <li>Tiket harus memiliki status <strong>Closed</strong> terlebih dahulu</li>
+                <li>Status tiket dapat diubah melalui halaman <strong>Action Taken</strong></li>
+                <li>Pastikan semua penyelesaian masalah telah dicatat</li>
+              </ul>
+            </div>
+            <div class="suggestion-box">
+              <p><strong>Saran:</strong> Kunjungi halaman <strong>Action Taken</strong> untuk menutup tiket ini terlebih dahulu.</p>
+              <router-link :to="`/tickets/${cannotDeleteTicket.id}/action-taken`" class="primary-button" @click="closeCannotDeleteModal">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 3H12C9.23858 3 7 5.23858 7 8V11C7 13.7614 9.23858 16 12 16H13V20H15V16H16C17.6569 16 19 14.6569 19 13V8C19 6.34315 17.6569 5 16 5H15V3H13Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M5 9H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M5 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M9 5V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M5 17H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Go to Action Taken</span>
+              </router-link>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" @click="closeCannotDeleteModal">Mengerti</button>
+        </div>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -291,9 +348,11 @@ import { ticketAPI } from '../api/ticketAPI';
 // State management
 const showDetailModal = ref(false);
 const showDeleteModal = ref(false);
+const showCannotDeleteModal = ref(false); // New modal for tickets that can't be deleted
 const showClosedTickets = ref(false);
 
 const ticketToDelete = ref<Ticket | null>(null);
+const cannotDeleteTicket = ref<Ticket | null>(null);
 const searchQuery = ref('');
 const dateFilterFrom = ref('');
 const dateFilterTo = ref('');
@@ -411,13 +470,26 @@ const viewTicket = async (ticket: Ticket) => {
 };
 
 const deleteTicket = (ticket: Ticket) => {
-  ticketToDelete.value = ticket;
-  showDeleteModal.value = true;
+  // Check if ticket status is "Open" - if so, show a different modal
+  if (ticket.status === 'Open') {
+    // Show warning modal for open tickets
+    showCannotDeleteModal.value = true;
+    cannotDeleteTicket.value = ticket;
+  } else {
+    // Show normal delete confirmation for non-open tickets
+    ticketToDelete.value = ticket;
+    showDeleteModal.value = true;
+  }
 };
 
 const closeDeleteModal = () => {
   showDeleteModal.value = false;
   ticketToDelete.value = null;
+};
+
+const closeCannotDeleteModal = () => {
+  showCannotDeleteModal.value = false;
+  cannotDeleteTicket.value = null;
 };
 
 const confirmDelete = async () => {
@@ -746,6 +818,15 @@ watch([searchQuery, showClosedTickets], () => {
 .action-button.view:hover { color: #3b82f6; }
 .action-button.action-taken:hover { color: #10b981; }
 .action-button.delete:hover { color: #ef4444; }
+.action-button.delete.disabled-delete {
+  color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.action-button.delete.disabled-delete:hover {
+  color: #d1d5db;
+  background-color: transparent;
+}
 .action-button.export-pdf:hover { color: #f59e0b; }
 .action-button.export-excel:hover { color: #10b981; }
 
@@ -861,6 +942,83 @@ watch([searchQuery, showClosedTickets], () => {
     border-color: #ff4d4f;
     box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.2);
     background-color: #ffffff;
+}
+
+/* Warning Modal Styles */
+.warning-modal { max-width: 550px; }
+.warning-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+.warning-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+.warning-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #334155;
+}
+.warning-message {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.status-highlight {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.requirement-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.requirement-box h4 {
+  margin: 0 0 1rem 0;
+  color: #1e293b;
+  font-size: 1.1rem;
+}
+.requirement-box ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+.requirement-box li {
+  margin-bottom: 0.5rem;
+  color: #475569;
+}
+.suggestion-box {
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.suggestion-box p {
+  margin: 0 0 1rem 0;
+  color: #065f46;
+}
+.suggestion-box .primary-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.suggestion-box .primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
 }
 
 /* Responsive */

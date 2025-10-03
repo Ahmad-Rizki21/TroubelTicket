@@ -4,9 +4,9 @@
       <div class="header-content">
         <div class="title-section">
           <h1 class="page-title">
-            <span class="title-gradient">Manajemen Pengguna</span>
+            <span class="title-gradient">User Management</span>
           </h1>
-          <p class="page-subtitle">Tambah, edit, dan kelola akun pengguna di sini.</p>
+          <p class="page-subtitle">Add, edit, and manage user accounts here.</p>
         </div>
         <div class="header-stats">
           <div class="live-indicator">
@@ -18,7 +18,7 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span>Tambah Pengguna</span>
+              <span>Add User</span>
             </button>
           </div>
         </div>
@@ -33,7 +33,7 @@
         </svg>
         <input 
           type="text" 
-          placeholder="Cari berdasarkan nama, username..." 
+          placeholder="Search by name, username..." 
           class="search-input"
           v-model="searchQuery"
           @input="applyFilters"
@@ -42,7 +42,7 @@
       
       <div class="filters">
         <select class="filter-select" v-model="roleFilter" @change="applyFilters">
-          <option value="">Semua Peran</option>
+          <option value="">All Roles</option>
           <option v-for="role in roles" :key="role.id" :value="role.name">{{ role.name }}</option>
         </select>
       </div>
@@ -55,17 +55,17 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Nama Pengguna</th>
-              <th>Peran</th>
+              <th>Username</th>
+              <th>Role</th>
               <th>Status</th>
-              <th>Dibuat Pada</th>
-              <th>Aksi</th>
+              <th>Created At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="paginatedUsers.length === 0">
               <td colspan="6" class="empty-state">
-                <p>Tidak ada pengguna yang ditemukan.</p>
+                <p>No users found.</p>
               </td>
             </tr>
             <tr v-for="user in paginatedUsers" :key="user.id">
@@ -79,15 +79,15 @@
                 <span class="role-badge" :style="getRoleStyle(user.role.name)">{{ user.role.name }}</span>
               </td>
               <td>
-                <span class="status-badge status-active">Aktif</span> <!-- Placeholder for status -->
+                <span class="status-badge status-active">Active</span> <!-- Placeholder for status -->
               </td>
               <td>{{ formatDate(user.created_at) }}</td>
               <td>
                 <div class="action-buttons">
-                  <button class="action-button edit" @click="openEditModal(user)" title="Edit Pengguna">
+                  <button class="action-button edit" @click="openEditModal(user)" title="Edit User">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.5L21.5 5.5M17.5 1.5L9 10V13H12L20.5 4.5L17.5 1.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   </button>
-                  <button class="action-button delete" @click="confirmDelete(user)" title="Hapus Pengguna">
+                  <button class="action-button delete" @click="confirmDelete(user)" title="Delete User">
                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 2.96957 16 3.5V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   </button>
                 </div>
@@ -103,11 +103,11 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>Sebelumnya</span>
+          <span>Previous</span>
         </button>
-        <span class="pagination-info">Halaman {{ currentPage }} dari {{ totalPages }}</span>
+        <span class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</span>
         <button class="pagination-button" :disabled="currentPage === totalPages" @click="nextPage">
-          <span>Berikutnya</span>
+          <span>Next</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -121,7 +121,7 @@
     <div v-if="showCreateEditModal" class="modal-overlay" @click="closeCreateEditModal">
       <div v-if="currentUser" class="modal-content" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">{{ isEditing ? 'Edit Pengguna' : 'Tambah Pengguna' }}</h2>
+          <h2 class="modal-title">{{ isEditing ? 'Edit User' : 'Add User' }}</h2>
           <button class="close-button" @click="closeCreateEditModal">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -138,14 +138,14 @@
             <input type="password" id="password" v-model="currentUser.password" required>
           </div>
           <div class="form-group">
-            <label for="role">Peran</label>
+            <label for="role">Role</label>
             <select id="role" v-model="currentUser.role_id" required>
               <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
             </select>
           </div>
           <div class="modal-actions">
-            <button type="button" class="secondary-button" @click="closeCreateEditModal">Batal</button>
-            <button type="submit" class="primary-button">{{ isEditing ? 'Simpan Perubahan' : 'Tambah Pengguna' }}</button>
+            <button type="button" class="secondary-button" @click="closeCreateEditModal">Cancel</button>
+            <button type="submit" class="primary-button">{{ isEditing ? 'Save Changes' : 'Add User' }}</button>
           </div>
         </form>
       </div>
@@ -157,17 +157,17 @@
     <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
       <div class="modal-content confirmation-modal" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">Konfirmasi Penghapusan Pengguna</h2>
+          <h2 class="modal-title">Confirm User Deletion</h2>
         </div>
         <div class="modal-body">
           <p v-if="userToDelete">
-            Apakah Anda yakin ingin menghapus pengguna <strong>{{ userToDelete.username }}</strong>?
+            Are you sure you want to delete the user <strong>{{ userToDelete.username }}</strong>?
           </p>
-          <p class="warning-text">Tindakan ini tidak dapat dibatalkan.</p>
+          <p class="warning-text">This action cannot be undone.</p>
         </div>
         <div class="modal-actions">
-          <button type="button" class="secondary-button" @click="closeDeleteModal">Batal</button>
-          <button type="button" class="primary-button delete-confirm-button" @click="deleteUser">Ya, Hapus</button>
+          <button type="button" class="secondary-button" @click="closeDeleteModal">Cancel</button>
+          <button type="button" class="primary-button delete-confirm-button" @click="deleteUser">Yes, Delete</button>
         </div>
       </div>
     </div>

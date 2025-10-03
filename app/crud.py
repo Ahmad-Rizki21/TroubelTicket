@@ -10,6 +10,33 @@ import secrets
 # ==================================
 from sqlalchemy.orm import joinedload
 
+# ==================================
+# Ticket Code Generation
+# ==================================
+def generate_sequential_ticket_code(db: Session) -> str:
+    """
+    Generate sequential ticket code in format AG-00000001, AG-00000002, etc.
+    """
+    # Get the highest ticket code from existing tickets
+    last_ticket = db.query(models.Ticket).filter(
+        models.Ticket.ticket_code.like('AG-%')
+    ).order_by(models.Ticket.id.desc()).first()
+
+    if last_ticket and last_ticket.ticket_code:
+        # Extract the number from the last ticket code
+        try:
+            last_number = int(last_ticket.ticket_code.split('-')[1])
+            next_number = last_number + 1
+        except (ValueError, IndexError):
+            # If there's an issue with parsing, start from 1
+            next_number = 1
+    else:
+        # No existing tickets with AG- prefix, start from 1
+        next_number = 1
+
+    # Format the ticket code with leading zeros
+    return f"AG-{next_number:08d}"
+
 def get_user(db: Session, user_id: int):
     return db.query(models.User).options(joinedload(models.User.role).joinedload(models.Role.permissions)).filter(models.User.id == user_id).first()
 
@@ -218,11 +245,15 @@ def get_tickets(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Ticket).offset(skip).limit(limit).all()
 
 def create_ticket(db: Session, ticket: schemas.TicketCreate):
+    # Generate sequential ticket code
+    ticket_code = generate_sequential_ticket_code(db)
+
     db_ticket = models.Ticket(
-        ticket_code=ticket.ticket_code,
+        ticket_code=ticket_code,
         title=ticket.title,
         description=ticket.description,
         priority=ticket.priority,
+        category=ticket.category,
         reporter_name=ticket.reporter_name,
         reporter_contact=ticket.reporter_contact
     )

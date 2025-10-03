@@ -25,7 +25,7 @@ export interface TicketCreate {
   priority: string;
   reporter_name: string;
   reporter_contact?: string;
-  ticket_code: string;
+  category?: string;
 }
 
 export interface TicketUpdate {

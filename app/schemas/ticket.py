@@ -9,11 +9,11 @@ class TicketBase(BaseModel):
     title: str
     description: Optional[str] = None
     priority: str
+    category: Optional[str] = None
     reporter_name: str
     reporter_contact: Optional[str] = None
     
 class TicketCreate(TicketBase):
-    ticket_code: str # ticket_code dibutuhkan saat membuat tiket baru
     pass
 
 class TicketUpdate(BaseModel):
@@ -21,6 +21,7 @@ class TicketUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[str] = None
     priority: Optional[str] = None
+    category: Optional[str] = None
     reporter_contact: Optional[str] = None
     assignee_id: Optional[int] = None
     summary_problem: Optional[str] = None
@@ -35,7 +36,7 @@ class Ticket(TicketBase):
     created_at: datetime
     closed_at: Optional[datetime] = None
     downtime: Optional[timedelta] = None
-    
+
     assignee: Optional[User] = None
     
     # DISempurnakan: Menampilkan daftar semua riwayat aksi untuk tiket ini
