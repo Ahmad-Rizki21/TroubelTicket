@@ -71,11 +71,11 @@ def seed_admin():
 
         admin_user_schema = UserCreate(
             username="admin",
-            password="admin", # Default password, harus diganti di production
+            password="NOCag2025", # Production password
             role_id=admin_role.id
         )
         create_user(db, user=admin_user_schema)
-        print("User 'admin' dengan password 'admin' berhasil dibuat.")
+        print("User 'admin' dengan password 'NOCag2025' berhasil dibuat.")
     else:
         print("User 'admin' sudah ada.")
 
