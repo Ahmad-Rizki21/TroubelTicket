@@ -211,7 +211,7 @@
             :data="categoryChartData"
           />
           <div v-else class="chart-placeholder">
-            <p v-if="categoryStats.value && categoryStats.value.length === 0">No category data available</p>
+            <p v-if="categoryStats && categoryStats.length === 0">No category data available</p>
             <p v-else>Loading chart data...</p>
           </div>
         </div>
@@ -238,7 +238,7 @@
             :data="statusChartData"
           />
           <div v-else class="chart-placeholder">
-            <p v-if="statusStats.value && statusStats.value.length === 0">No status data available</p>
+            <p v-if="statusStats && statusStats.length === 0">No status data available</p>
             <p v-else>Loading chart data...</p>
           </div>
         </div>
@@ -264,7 +264,7 @@
             :options="barChartOptions"
           />
           <div v-else class="chart-placeholder">
-            <p v-if="technicianStats.value && technicianStats.value.length === 0">No technician data available</p>
+            <p v-if="technicianStats && technicianStats.length === 0">No technician data available</p>
             <p v-else>Loading chart data...</p>
           </div>
         </div>
@@ -339,8 +339,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
-import { reportsAPI, type ReportData, type ReportSummary, type ReportTicket, type CategoryStats, type StatusStats, type TechnicianPerformance } from '../api/reportsAPI';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { reportsAPI, type ReportSummary, type ReportTicket, type CategoryStats, type StatusStats, type TechnicianPerformance } from '../api/reportsAPI';
 import BaseChart from '../components/BaseChart.vue';
 import { Chart, type ChartData, type ChartOptions, registerables } from 'chart.js';
 
@@ -551,7 +551,7 @@ const barChartOptions: ChartOptions = {
 };
 
 // Real-time update interval
-let updateInterval: NodeJS.Timeout | null = null;
+let updateInterval: number | null = null;
 
 
 // Methods
