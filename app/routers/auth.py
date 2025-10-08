@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from jose import JWTError, jwt
+import jwt
 from datetime import datetime, timedelta
 import secrets
 
@@ -36,7 +36,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         if user_id is None or token_type != "access":
             raise credentials_exception
         token_data = schemas.TokenData(id=user_id)
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
     
     user = crud.get_user(db, user_id=int(token_data.id))
@@ -105,7 +105,7 @@ async def refresh_access_token(token: str = Depends(oauth2_scheme), db: Session 
         if user_id is None or token_type != "refresh":
             raise credentials_exception
         token_data = schemas.TokenData(id=user_id)
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
     
     user = crud.get_user(db, user_id=int(token_data.id))
