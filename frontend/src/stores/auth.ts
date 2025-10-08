@@ -76,7 +76,7 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
-    async refreshToken() {
+    async refreshAccessToken() {
       if (!this.refreshToken) {
         throw new Error('No refresh token available');
       }

@@ -68,7 +68,7 @@ api.interceptors.response.use(
       try {
         // Get auth store and try to refresh token
         const authStore = useAuthStore();
-        const newToken = await authStore.refreshToken();
+        const newToken = await authStore.refreshAccessToken();
 
         // Update Authorization header
         api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
