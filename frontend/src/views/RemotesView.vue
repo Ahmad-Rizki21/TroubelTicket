@@ -31,7 +31,7 @@
       <!-- Remotes Table Card -->
       <div class="card table-card">
         <div class="table-header">
-          <h3>All Remote Locations ({{ remotes.length }})</h3>
+          <h3>All Remote Locations ({{ remotes.length }}) - Showing {{ startIndex }}-{{ endIndex }} of {{ remotes.length }}</h3>
         </div>
         <div class="table-responsive">
           <table class="remotes-table">
@@ -53,7 +53,7 @@
               <tr v-else-if="remotes.length === 0">
                 <td colspan="7" class="empty-state">No remotes found. Add one to get started.</td>
               </tr>
-              <tr v-for="remote in remotes" :key="remote.id">
+              <tr v-for="remote in paginatedRemotes" :key="remote.id">
                 <td class="remote-id">{{ remote.site_id_poi || '-' }}</td>
                 <td>
                   <div class="remote-name">{{ remote.site_name }}</div>
@@ -75,6 +75,37 @@
               </tr>
             </tbody>
           </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-controls" v-if="remotes.length > itemsPerPage">
+          <div class="pagination-info">
+            Page {{ currentPage }} of {{ totalPages }}
+          </div>
+          <div class="pagination-buttons">
+            <button 
+              @click="prevPage" 
+              :disabled="currentPage === 1" 
+              class="pagination-button">
+              Previous
+            </button>
+            
+            <!-- Page number buttons -->
+            <button 
+              v-for="page in getPageNumbers()" 
+              :key="page" 
+              @click="goToPage(page)" 
+              :class="['pagination-button', { active: page === currentPage }]">
+              {{ page }}
+            </button>
+            
+            <button 
+              @click="nextPage" 
+              :disabled="currentPage === totalPages" 
+              class="pagination-button">
+              Next
+            </button>
+          </div>
         </div>
       </div>
       
@@ -108,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import L, { Map, Marker, Icon } from 'leaflet';
 import { remoteAPI, type Remote } from '../api/remoteAPI';
@@ -126,6 +157,21 @@ const markers = ref<Marker[]>([]);
 
 const showDeleteModal = ref(false);
 const remoteToDelete = ref<Remote | null>(null);
+
+// --- Pagination State ---
+const currentPage = ref(1);
+const itemsPerPage = ref(10); // Default items per page
+
+const totalPages = computed(() => Math.ceil(remotes.value.length / itemsPerPage.value));
+
+const paginatedRemotes = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return remotes.value.slice(start, end);
+});
+
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value + 1);
+const endIndex = computed(() => Math.min(currentPage.value * itemsPerPage.value, remotes.value.length));
 
 // --- Leaflet Icon Fix ---
 // Manually set the icon paths for Leaflet to work with Vite
@@ -164,7 +210,7 @@ const updateMapMarkers = () => {
   markers.value.forEach(marker => marker.remove());
   markers.value = [];
 
-  // Add new markers
+  // Add new markers - use the full remotes array for the map
   remotes.value.forEach(remote => {
     const popupContent = `
       <div class="map-popup">
@@ -225,6 +271,54 @@ const confirmDelete = async () => {
   } catch (error) {
     console.error("Failed to delete remote:", error);
   }
+};
+
+// --- Pagination Methods ---
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+
+// Function to generate page numbers to display in pagination
+const getPageNumbers = () => {
+  const pages = [];
+  const maxVisiblePages = 5; // Maximum number of page buttons to show
+  
+  if (totalPages.value <= maxVisiblePages) {
+    // If total pages is less than or equal to max visible, show all pages
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Calculate the range of pages to show around current page
+    let startPage = Math.max(1, currentPage.value - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages.value, startPage + maxVisiblePages - 1);
+    
+    // Adjust the start page if the end page reached the maximum
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    // Add the page numbers to the array
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+  }
+  
+  return pages;
 };
 
 // --- Lifecycle Hooks ---
@@ -437,6 +531,54 @@ onUnmounted(() => {
 .action-button:hover { background-color: #f1f5f9; color: #1e293b; }
 .action-button.edit:hover { color: #f59e0b; }
 .action-button.delete:hover { color: #ef4444; }
+
+/* Pagination Styles */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  background-color: #ffffff;
+}
+
+.pagination-info {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-button.active {
+  background-color: #800000;
+  color: white;
+  border-color: #800000;
+}
 
 /* Modal Styles (re-using from Tickets.vue for consistency) */
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
