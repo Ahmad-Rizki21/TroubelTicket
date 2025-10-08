@@ -160,7 +160,7 @@ const remoteToDelete = ref<Remote | null>(null);
 
 // --- Pagination State ---
 const currentPage = ref(1);
-const itemsPerPage = ref(10); // Default items per page
+const itemsPerPage = ref(5); // Default items per page
 
 const totalPages = computed(() => Math.ceil(remotes.value.length / itemsPerPage.value));
 
