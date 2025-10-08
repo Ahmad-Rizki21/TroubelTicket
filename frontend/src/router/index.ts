@@ -18,27 +18,32 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login,
+    meta: { hideSidebar: true }
   },
   {
     path: '/reset-password',
     name: 'ResetPassword',
     component: ResetPassword,
+    meta: { hideSidebar: true }
   },
   {
     path: '/reset-password/:token',
     name: 'ResetPasswordWithToken',
     component: ResetPassword,
-    props: true
+    props: true,
+    meta: { hideSidebar: true }
   },
   {
     path: '/change-password',
     name: 'ChangePassword',
     component: ChangePassword,
+    meta: { hideSidebar: true }
   },
   {
     path: '/simple-reset-password',
     name: 'SimplePasswordReset',
     component: SimplePasswordReset,
+    meta: { hideSidebar: true }
   },
   {
     path: '/dashboard',

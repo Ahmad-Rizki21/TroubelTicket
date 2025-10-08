@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div v-if="authStore.isAuthenticated" class="app-layout">
+    <div v-if="authStore.isAuthenticated && !$route.meta.hideSidebar" class="app-layout">
       <!-- Sidebar Navigation -->
       <aside class="sidebar">
         <div class="sidebar-header">
@@ -11,7 +11,7 @@
             <span class="logo-text">{{ settingsStore.siteName }}</span>
           </div>
         </div>
-        
+
         <nav class="sidebar-nav">
           <ul class="nav-list">
             <template v-for="(item, index) in navigationMenu" :key="index">
@@ -30,7 +30,7 @@
             </template>
           </ul>
         </nav>
-        
+
         <div class="sidebar-footer">
           <div class="user-info">
             <div class="user-avatar">
@@ -47,7 +47,7 @@
           </button>
         </div>
       </aside>
-      
+
       <main class="main-content">
         <router-view />
         <footer class="app-footer">
@@ -55,7 +55,7 @@
         </footer>
       </main>
     </div>
-    
+
     <div v-else>
       <router-view />
     </div>

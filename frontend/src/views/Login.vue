@@ -171,7 +171,7 @@ const handleLogin = async () => {
 
     if (response.data && response.data.access_token) {
       // Store the token using the auth store
-      authStore.setToken(response.data.access_token);
+      authStore.setToken(response.data.access_token, response.data.refresh_token);
       
       if (rememberMe.value) {
         localStorage.setItem('rememberMe', 'true');

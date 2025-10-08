@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import api from '../api/api'; // Using the main API configuration
+import { passwordResetAPI } from '../api/passwordResetAPI';
 
 // State management
 const username = ref('');
@@ -145,11 +145,11 @@ const handleChangePassword = async () => {
 
   try {
     // Make a direct API call to change password (this requires the backend endpoint to exist)
-    const response = await api.post('/change-password', {
-      username: username.value,
-      new_password: newPassword.value,
-      confirm_new_password: confirmPassword.value
-    });
+    const response = await passwordResetAPI.changePassword(
+      username.value,
+      newPassword.value,
+      confirmPassword.value
+    );
     
     message.value = response.data.message || 'Password changed successfully';
     username.value = '';

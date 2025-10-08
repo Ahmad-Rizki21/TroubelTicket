@@ -7,11 +7,20 @@ export const passwordResetAPI = {
       username
     });
   },
-  
+
   // Actually reset the password with new password and token
   resetPassword: (token: string, newPassword: string, confirmNewPassword: string) => {
     return api.post('/reset-password', {
       token,
+      new_password: newPassword,
+      confirm_new_password: confirmNewPassword
+    });
+  },
+
+  // Change password with username and current password
+  changePassword: (username: string, newPassword: string, confirmNewPassword: string) => {
+    return api.post('/change-password', {
+      username,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword
     });
