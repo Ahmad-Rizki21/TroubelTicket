@@ -43,7 +43,7 @@
           </div>
           <button class="logout-button" @click="handleLogout">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12M21 12L16 7M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Keluar</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>
@@ -51,7 +51,7 @@
       <main class="main-content">
         <router-view />
         <footer class="app-footer">
-          <p>&copy; 2025 PT. Artacomindo Jejaring Nusa. Hak Cipta Dilindungi.</p>
+          <p>&copy; 2025 PT. Artacomindo Jejaring Nusa. All Rights Reserved.</p>
         </footer>
       </main>
     </div>
@@ -102,15 +102,15 @@ type NavigationMenuItem = NavItem | NavHeader;
 const navigationMenu = computed(() => {
   const allNavigationItems: NavigationMenuItem[] = [
     { title: 'Dashboard', to: '/dashboard', icon: markRaw(DashboardIcon) },
-    { title: 'Laporan', isHeader: true },
-    { title: 'Tiket', to: '/tickets', icon: markRaw(TiketIcon), isChild: true },
-    { title: 'Laporan', to: '/reports', icon: markRaw(LaporanChildIcon), isChild: true },
-    { title: 'Layanan', isHeader: true },
+    { title: 'Reports', isHeader: true },
+    { title: 'Tickets', to: '/tickets', icon: markRaw(TiketIcon), isChild: true },
+    { title: 'Reports', to: '/reports', icon: markRaw(LaporanChildIcon), isChild: true },
+    { title: 'Services', isHeader: true },
     { title: 'Remote', to: '/remotes', icon: markRaw(RemoteIcon), isChild: true },
     { title: 'System', isHeader: true },
-    { title: 'Pengguna', to: '/users', icon: markRaw(UserIcon), isChild: true },
-    { title: 'Peran & Izin', to: '/roles-permissions', icon: markRaw(PeranIcon), isChild: true },
-    { title: 'Pengaturan', to: '/settings', icon: markRaw(PengaturanIcon), isChild: true },
+    { title: 'Users', to: '/users', icon: markRaw(UserIcon), isChild: true },
+    { title: 'Roles & Permissions', to: '/roles-permissions', icon: markRaw(PeranIcon), isChild: true },
+    { title: 'Settings', to: '/settings', icon: markRaw(PengaturanIcon), isChild: true },
   ];
   
   // Define permissions required for each route

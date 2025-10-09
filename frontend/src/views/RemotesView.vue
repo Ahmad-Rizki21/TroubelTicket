@@ -243,28 +243,112 @@ const initMap = () => {
   // Add OpenStreetMap as default layer
   osm.addTo(map);
 
-  // Add layer control with error handling
-  try {
-    L.control.layers(baseLayers.value, {
-      position: 'topright',
-      collapsed: true
-    }).addTo(map);
-  } catch (error) {
-    console.error('Error adding layer control:', error);
-  }
+  // Create custom layer control
+  const addLayerControl = () => {
+    if (!map) return;
 
-  } catch (error) {
-    console.error('Error initializing map:', error);
-    // Fallback: show error message to user
-    const container = document.getElementById('map-container');
-    if (container) {
-      container.innerHTML = `
+    const controlContainer = L.DomUtil.create('div', 'leaflet-bar leaflet-control layer-control-container');
+    controlContainer.style.cssText = `
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      min-width: 150px;
+    `;
+
+    const layers = [
+      { name: 'Standard', icon: '🗺️' },
+      { name: 'Satellite', icon: '🛰️' },
+      { name: 'Terrain', icon: '🏞️' },
+      { name: 'Dark', icon: '🌃' }
+    ];
+
+    const buttons: { [key: string]: HTMLElement } = {};
+
+    const updateButtons = (activeLayerName: string) => {
+      layers.forEach(layer => {
+        const button = buttons[layer.name];
+        if (layer.name === activeLayerName) {
+          // Remove active class from all buttons
+          Object.values(buttons).forEach(btn => {
+            btn.classList.remove('active');
+            btn.classList.add('inactive');
+          });
+          // Add active class to selected button
+          button.classList.add('active');
+          button.classList.remove('inactive');
+        }
+      });
+    };
+
+    layers.forEach((layer) => {
+      const button = L.DomUtil.create('a', 'layer-selector', controlContainer);
+      button.innerHTML = `<span class="layer-icon">${layer.icon}</span><span class="layer-name">${layer.name}</span>`;
+      button.href = '#';
+      button.setAttribute('role', 'button');
+      button.setAttribute('title', layer.name + ' Map');
+      button.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        color: #334155;
+        width: 100%;
+      `;
+
+      L.DomEvent.on(button, 'click', (e) => {
+        L.DomEvent.stop(e);
+        
+        Object.values(baseLayers.value).forEach(tileLayer => {
+          if (map && map.hasLayer(tileLayer)) {
+            map.removeLayer(tileLayer);
+          }
+        });
+
+        if (map) {
+          baseLayers.value[layer.name].addTo(map);
+        }
+        updateButtons(layer.name);
+      });
+      
+      buttons[layer.name] = button;
+    });
+
+    updateButtons('Standard'); // Set initial active button
+
+    map.getContainer().appendChild(controlContainer);
+  };
+  // Call layer control after map is fully initialized
+  setTimeout(() => {
+    addLayerControl();
+  }, 100);
+
+} catch (error) {
+  console.error('Error initializing map:', error);
+  // Fallback: show error message to user
+  const errorContainer = document.getElementById('map-container');
+    if (errorContainer) {
+      errorContainer.innerHTML = `
         <div style="
           display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 500px;
           background: #f8fafc;
           border: 2px dashed #e2e8f0;
           border-radius: 12px;
@@ -423,9 +507,6 @@ onUnmounted(() => {
   if (map) {
     map.remove();
     map = null;
-  }
-  if (layerControl) {
-    layerControl = null;
   }
 });
 
@@ -742,126 +823,82 @@ onUnmounted(() => {
 }
 
 /* Custom Layer Control Styles */
-:deep(.leaflet-control-layers) {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-height: 300px;
-  overflow-y: auto;
+:deep(.layer-control-container) {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 0.5rem !important;
+  min-width: 150px !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
-:deep(.leaflet-control-layers-expanded) {
-  padding: 0.5rem;
+:deep(.layer-selector) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.625rem 1rem !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  border: 1px solid transparent !important;
+  color: #334155 !important;
+  background: transparent !important;
+  width: 100% !important;
+  text-align: left !important;
+  line-height: 1.3 !important;
 }
 
-
-:deep(.leaflet-control-layers-toggle) {
-  background: #800000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
+:deep(.layer-selector:hover:not(.active)) {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
 }
 
-:deep(.leaflet-control-layers-toggle:hover) {
-  background: #5c0000;
-  transform: scale(1.1);
+:deep(.layer-selector.active) {
+  background: linear-gradient(135deg, #800000 0%, #5c0000 100%) !important;
+  color: white !important;
+  border-color: #800000 !important;
 }
 
-:deep(.leaflet-control-layers-selector) {
-  margin: 0.25rem 0;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
+:deep(.layer-selector.inactive) {
+  background: transparent !important;
+  color: #334155 !important;
+  border-color: transparent !important;
 }
 
-:deep(.leaflet-control-layers-selector:hover) {
-  background: #f8fafc;
-  border-color: #800000;
+:deep(.layer-icon) {
+  font-size: 1.1rem !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  justify-content: center !important;
 }
 
-:deep(.leaflet-control-layers-selector input) {
-  margin-right: 0.5rem;
+:deep(.layer-name) {
+  font-weight: 500 !important;
+  white-space: nowrap !important;
 }
 
-:deep(.leaflet-control-layers-selector span) {
-  font-size: 0.9rem;
-  color: #475569;
-  font-weight: 500;
-}
-
-:deep(.leaflet-control-layers-selector:hover span) {
-  color: #800000;
-}
-
-/* Map Layer Icons */
-:deep(.leaflet-control-layers-selector) {
-  position: relative;
-  padding-left: 2rem;
-}
-
-:deep(.leaflet-control-layers-selector::before) {
-  content: '';
-  position: absolute;
-  left: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-}
-
-/* Layer type indicators */
-:deep(.leaflet-control-layers-selector:nth-child(1)::before) {
-  /* Standard */
-  background: linear-gradient(135deg, #4CAF50 25%, #8BC34A 25%, #CDDC39 25%, #FFEB3B 25%, #FFC107 25%, #FF9800 25%, #FF5722 25%, #F44336 25%);
-}
-
-:deep(.leaflet-control-layers-selector:nth-child(2)::before) {
-  /* Satellite */
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-}
-
-:deep(.leaflet-control-layers-selector:nth-child(3)::before) {
-  /* Terrain */
-  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #BC8F8F 100%);
-}
-
-:deep(.leaflet-control-layers-selector:nth-child(4)::before) {
-  /* Dark */
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-}
-
-
-/* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  :deep(.leaflet-control-layers) {
-    font-size: 0.8rem;
+  :deep(.layer-name) {
+    display: none !important;
   }
-
-  :deep(.leaflet-control-layers-toggle) {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
+  :deep(.layer-selector) {
+    padding: 0.625rem !important;
+    justify-content: center !important;
   }
-
-  :deep(.leaflet-control-layers-selector) {
-    padding: 0.2rem 0.4rem;
-    margin: 0.15rem 0;
+  :deep(.layer-icon) {
+    margin-right: 0 !important;
   }
-
-  :deep(.leaflet-control-layers-selector span) {
-    font-size: 0.8rem;
+  :deep(.layer-control-container) {
+    min-width: 50px !important;
+    padding: 0.25rem !important;
   }
 }
 </style>
