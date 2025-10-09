@@ -141,7 +141,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import L, { Map, Marker, Icon } from 'leaflet';
+import L, { Map, Marker, Icon, TileLayer } from 'leaflet';
 import { remoteAPI, type Remote } from '../api/remoteAPI';
 
 const router = useRouter();
@@ -154,6 +154,8 @@ const remotes = ref<Remote[]>([]);
 const loading = ref(true);
 let map: Map | null = null;
 const markers = ref<Marker[]>([]);
+const baseLayers = ref<{ [key: string]: TileLayer }>({});
+let layerControl: L.Control.Layers | null = null;
 
 const showDeleteModal = ref(false);
 const remoteToDelete = ref<Remote | null>(null);
@@ -195,12 +197,98 @@ const maroonIcon = new L.Icon({
 
 // --- Map Logic ---
 const initMap = () => {
-  if (map) return;
-  map = L.map('map-container').setView([-6.2088, 106.8456], 10); // Default view (Jakarta)
+  try {
+    // Check if container exists
+    const container = document.getElementById('map-container');
+    if (!container) {
+      console.error('Map container not found');
+      return;
+    }
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Clear existing map if any
+    if (map) {
+      map.remove();
+      map = null;
+    }
+
+    // Initialize map
+    map = L.map('map-container').setView([-6.2088, 106.8456], 10); // Default view (Jakarta)
+
+  // Define different tile layers
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  });
+
+  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  });
+
+  const terrain = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+  });
+
+  const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  });
+
+  // Store base layers
+  baseLayers.value = {
+    "Standard": osm,
+    "Satellite": satellite,
+    "Terrain": terrain,
+    "Dark": dark
+  };
+
+  // Add OpenStreetMap as default layer
+  osm.addTo(map);
+
+  // Add layer control with error handling
+  try {
+    layerControl = L.control.layers(baseLayers.value, {}, {
+      position: 'topright',
+      collapsed: true
+    }).addTo(map);
+  } catch (error) {
+    console.error('Error adding layer control:', error);
+  }
+
+  } catch (error) {
+    console.error('Error initializing map:', error);
+    // Fallback: show error message to user
+    const container = document.getElementById('map-container');
+    if (container) {
+      container.innerHTML = `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 500px;
+          background: #f8fafc;
+          border: 2px dashed #e2e8f0;
+          border-radius: 12px;
+          padding: 2rem;
+          text-align: center;
+          color: #64748b;
+        ">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">🗺️</div>
+          <h3 style="color: #1e293b; margin: 0 0 0.5rem 0;">Map Loading Error</h3>
+          <p>Unable to load the map. Please refresh the page and try again.</p>
+          <button onclick="location.reload()" style="
+            background: #800000;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 1rem;
+          ">Refresh Page</button>
+        </div>
+      `;
+    }
+  }
 };
 
 const updateMapMarkers = () => {
@@ -648,5 +736,129 @@ onUnmounted(() => {
 :deep(.leaflet-popup-close-button:hover) {
   color: #1e293b;
   background-color: #f1f5f9;
+}
+
+/* Custom Layer Control Styles */
+:deep(.leaflet-control-layers) {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+:deep(.leaflet-control-layers-expanded) {
+  padding: 0.5rem;
+}
+
+
+:deep(.leaflet-control-layers-toggle) {
+  background: #800000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+:deep(.leaflet-control-layers-toggle:hover) {
+  background: #5c0000;
+  transform: scale(1.1);
+}
+
+:deep(.leaflet-control-layers-selector) {
+  margin: 0.25rem 0;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:deep(.leaflet-control-layers-selector:hover) {
+  background: #f8fafc;
+  border-color: #800000;
+}
+
+:deep(.leaflet-control-layers-selector input) {
+  margin-right: 0.5rem;
+}
+
+:deep(.leaflet-control-layers-selector span) {
+  font-size: 0.9rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+:deep(.leaflet-control-layers-selector:hover span) {
+  color: #800000;
+}
+
+/* Map Layer Icons */
+:deep(.leaflet-control-layers-selector) {
+  position: relative;
+  padding-left: 2rem;
+}
+
+:deep(.leaflet-control-layers-selector::before) {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+/* Layer type indicators */
+:deep(.leaflet-control-layers-selector:nth-child(1)::before) {
+  /* Standard */
+  background: linear-gradient(135deg, #4CAF50 25%, #8BC34A 25%, #CDDC39 25%, #FFEB3B 25%, #FFC107 25%, #FF9800 25%, #FF5722 25%, #F44336 25%);
+}
+
+:deep(.leaflet-control-layers-selector:nth-child(2)::before) {
+  /* Satellite */
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+
+:deep(.leaflet-control-layers-selector:nth-child(3)::before) {
+  /* Terrain */
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #BC8F8F 100%);
+}
+
+:deep(.leaflet-control-layers-selector:nth-child(4)::before) {
+  /* Dark */
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  :deep(.leaflet-control-layers) {
+    font-size: 0.8rem;
+  }
+
+  :deep(.leaflet-control-layers-toggle) {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  :deep(.leaflet-control-layers-selector) {
+    padding: 0.2rem 0.4rem;
+    margin: 0.15rem 0;
+  }
+
+  :deep(.leaflet-control-layers-selector span) {
+    font-size: 0.8rem;
+  }
 }
 </style>
