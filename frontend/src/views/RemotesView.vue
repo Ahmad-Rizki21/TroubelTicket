@@ -155,7 +155,6 @@ const loading = ref(true);
 let map: Map | null = null;
 const markers = ref<Marker[]>([]);
 const baseLayers = ref<{ [key: string]: TileLayer }>({});
-let layerControl: L.Control.Layers | null = null;
 
 const showDeleteModal = ref(false);
 const remoteToDelete = ref<Remote | null>(null);
@@ -246,7 +245,7 @@ const initMap = () => {
 
   // Add layer control with error handling
   try {
-    layerControl = L.control.layers(baseLayers.value, {}, {
+    L.control.layers(baseLayers.value, {
       position: 'topright',
       collapsed: true
     }).addTo(map);
@@ -423,6 +422,10 @@ onMounted(() => {
 onUnmounted(() => {
   if (map) {
     map.remove();
+    map = null;
+  }
+  if (layerControl) {
+    layerControl = null;
   }
 });
 
